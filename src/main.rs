@@ -69,7 +69,9 @@ fn update(directory: String) {
 #[cfg(windows)]
 fn setup_env() {
     // Enable color support
-    colored::control::set_virtual_terminal(true);
+    colored::control::set_virtual_terminal(true).unwrap_or_else(|error| {
+        panic!("{} {:?}", "Error:".bright_red(), error);
+    });;
 }
 
 #[cfg(not(windows))]
