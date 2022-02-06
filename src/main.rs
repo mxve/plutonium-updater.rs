@@ -1,6 +1,6 @@
 use clap::Parser;
 use colored::*;
-use std::{fs, path::Path, str};
+use std::{fs, io::Write, path::Path, str};
 
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -21,11 +21,10 @@ fn update(directory: String) {
     let install_dir = Path::new(&directory);
 
     let mut body = Vec::new();
-    http_req::request::get("https://cdn.plutonium.pw/updater/prod/info.json", &mut body).unwrap_or_else(|error| {
-        panic!("{} {:?}", "Error:".bright_red(), error);
-    });
-
-    let mut downloader = downloader::Downloader::builder().build().unwrap();
+    http_req::request::get("https://cdn.plutonium.pw/updater/prod/info.json", &mut body)
+        .unwrap_or_else(|error| {
+            panic!("{} {:?}", "Error:".bright_red(), error);
+        });
 
     let resp: Info = serde_json::from_str(&str::from_utf8(&body).unwrap()).unwrap();
 
@@ -53,15 +52,19 @@ fn update(directory: String) {
         }
 
         let url = format!("{}{}", &resp.base_url, &resp_file.hash);
-        let dl = downloader::Download::new(&url).file_name(&file_path);
 
-        let result = downloader.download(&[dl]).unwrap();
-        for r in result {
-            match r {
-                Err(e) => println!("{} {}", "Error:".bright_red(), e.to_string()),
-                Ok(_) => println!("{}: {}", "Downloaded".bright_yellow(), &resp_file.name),
-            };
-        }
+        let mut f = fs::File::create(&file_path).unwrap_or_else(|error| {
+            panic!("{} {:?}", "Error:".bright_red(), error);
+        });
+        let mut body = Vec::new();
+        http_req::request::get(&url, &mut body).unwrap_or_else(|error| {
+            panic!("{} {:?}", "Error:".bright_red(), error);
+        });
+        f.write_all(&body).unwrap_or_else(|error| {
+            panic!("{} {:?}", "Error:".bright_red(), error);
+        });
+
+        println!("{}: {}", "Downloaded".bright_yellow(), &resp_file.name);
     }
 }
 
