@@ -1,5 +1,6 @@
 use colored::*;
 use std::{fs, path::Path, str};
+use clap::Parser;
 
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -16,8 +17,8 @@ struct PlutoFile {
     hash: String,
 }
 
-fn update() {
-    let install_dir = Path::new("plutonium");
+fn update(directory: String) {
+    let install_dir = Path::new(&directory);
     let cdn_get = easy_http_request::DefaultHttpRequest::get_from_url_str(
         "https://cdn.plutonium.pw/updater/prod/info.json",
     )
@@ -65,10 +66,9 @@ fn update() {
     }
 }
 
-
-
 #[cfg(windows)]
 fn setup_env() {
+    // Enable color support
     colored::control::set_virtual_terminal(true);
 }
 
@@ -77,7 +77,16 @@ fn setup_env() {
     // Empty for now
 }
 
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    #[clap(short, long, default_value = "plutonium")]
+    directory: String,
+}
+
 fn main() {
+    let args = Args::parse();
+
     setup_env();
-    update();
+    update(args.directory);
 }
