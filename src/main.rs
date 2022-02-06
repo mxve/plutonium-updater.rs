@@ -23,18 +23,13 @@ fn update(directory: String) {
     let mut body = Vec::new();
     http_req::request::get("https://cdn.plutonium.pw/updater/prod/info.json", &mut body)
         .unwrap_or_else(|error| {
-            panic!("{} {:?}", "Error:".bright_red(), error);
+            panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
         });
-
     let resp: Info = serde_json::from_str(&str::from_utf8(&body).unwrap()).unwrap();
 
     for resp_file in resp.files {
         let file_path = Path::join(install_dir, Path::new(&resp_file.name));
         let file_dir = file_path.parent().unwrap();
-
-        fs::create_dir_all(&file_dir).unwrap_or_else(|error| {
-            panic!("{} {:?}", "Error:".bright_red(), error);
-        });
 
         if file_path.exists() {
             let mut sha1 = sha1_smol::Sha1::new();
@@ -46,22 +41,26 @@ fn update(directory: String) {
                 continue;
             } else {
                 fs::remove_file(&file_path).unwrap_or_else(|error| {
-                    panic!("{} {:?}", "Error:".bright_red(), error);
+                    panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
                 });
             }
+        } else {
+            fs::create_dir_all(&file_dir).unwrap_or_else(|error| {
+                panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
+            });
         }
 
         let url = format!("{}{}", &resp.base_url, &resp_file.hash);
 
         let mut f = fs::File::create(&file_path).unwrap_or_else(|error| {
-            panic!("{} {:?}", "Error:".bright_red(), error);
+            panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
         });
         let mut body = Vec::new();
         http_req::request::get(&url, &mut body).unwrap_or_else(|error| {
-            panic!("{} {:?}", "Error:".bright_red(), error);
+            panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
         });
         f.write_all(&body).unwrap_or_else(|error| {
-            panic!("{} {:?}", "Error:".bright_red(), error);
+            panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
         });
 
         println!("{}: {}", "Downloaded".bright_yellow(), &resp_file.name);
@@ -72,7 +71,7 @@ fn update(directory: String) {
 fn setup_env() {
     // Enable color support
     colored::control::set_virtual_terminal(true).unwrap_or_else(|error| {
-        panic!("{} {:?}", "Error:".bright_red(), error);
+        panic!("\n\nError:\n{:?}", error);
     });
 }
 
