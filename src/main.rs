@@ -16,7 +16,7 @@ struct PlutoFile {
     hash: String,
 }
 
-fn main() {
+fn update() {
     let install_dir = Path::new("plutonium");
     let cdn_get = easy_http_request::DefaultHttpRequest::get_from_url_str(
         "https://cdn.plutonium.pw/updater/prod/info.json",
@@ -59,4 +59,13 @@ fn main() {
             };
         }
     }
+}
+#[cfg(windows)]
+fn main() {
+    colored::control::set_virtual_terminal(true);
+    update()
+}
+#[cfg(not(windows))]
+fn main() {
+    update()
 }
