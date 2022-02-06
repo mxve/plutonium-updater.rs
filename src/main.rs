@@ -45,6 +45,10 @@ fn update() {
             if &local_hash == &resp_file.hash {
                 println!("{}: {}", "Checked".cyan(), resp_file.name);
                 continue;
+            } else {
+                fs::remove_file(&file_path).unwrap_or_else(|error| {
+                    panic!("{} {:?}", "Error:".bright_red(), error);
+                });
             }
         }
 
@@ -60,11 +64,13 @@ fn update() {
         }
     }
 }
+
 #[cfg(windows)]
 fn main() {
     colored::control::set_virtual_terminal(true);
     update()
 }
+
 #[cfg(not(windows))]
 fn main() {
     update()
