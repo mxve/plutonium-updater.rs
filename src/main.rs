@@ -65,13 +65,19 @@ fn update() {
     }
 }
 
+
+
 #[cfg(windows)]
-fn main() {
+fn setup_env() {
     colored::control::set_virtual_terminal(true);
-    update()
 }
 
 #[cfg(not(windows))]
+fn setup_env() {
+    // Empty for now
+}
+
 fn main() {
-    update()
+    setup_env();
+    update();
 }
