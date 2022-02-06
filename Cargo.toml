@@ -6,10 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-easy-http-request = "*"
 downloader = "*"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "*"
 sha1_smol = "*"
 colored = "*"
 clap = { version = "3.0.14", features = ["derive"] }
+http_req  = {version="^0.8", default-features = false, features = ["rust-tls"]}

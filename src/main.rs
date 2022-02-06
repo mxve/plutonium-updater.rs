@@ -19,16 +19,15 @@ struct PlutoFile {
 
 fn update(directory: String) {
     let install_dir = Path::new(&directory);
-    let cdn_get = easy_http_request::DefaultHttpRequest::get_from_url_str(
-        "https://cdn.plutonium.pw/updater/prod/info.json",
-    )
-    .unwrap()
-    .send()
-    .unwrap();
+
+    let mut body = Vec::new();
+    http_req::request::get("https://cdn.plutonium.pw/updater/prod/info.json", &mut body).unwrap_or_else(|error| {
+        panic!("{} {:?}", "Error:".bright_red(), error);
+    });
 
     let mut downloader = downloader::Downloader::builder().build().unwrap();
 
-    let resp: Info = serde_json::from_str(&str::from_utf8(&cdn_get.body).unwrap()).unwrap();
+    let resp: Info = serde_json::from_str(&str::from_utf8(&body).unwrap()).unwrap();
 
     for resp_file in resp.files {
         let file_path = Path::join(install_dir, Path::new(&resp_file.name));
