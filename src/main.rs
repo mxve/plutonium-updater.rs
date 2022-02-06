@@ -1,6 +1,6 @@
+use clap::Parser;
 use colored::*;
 use std::{fs, path::Path, str};
-use clap::Parser;
 
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -71,7 +71,7 @@ fn setup_env() {
     // Enable color support
     colored::control::set_virtual_terminal(true).unwrap_or_else(|error| {
         panic!("{} {:?}", "Error:".bright_red(), error);
-    });;
+    });
 }
 
 #[cfg(not(windows))]
