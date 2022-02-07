@@ -20,6 +20,7 @@ struct PlutoFile {
 fn update(directory: String) {
     let install_dir = Path::new(&directory);
 
+    // get cdn info
     let mut body = Vec::new();
     http_req::request::get("https://cdn.plutonium.pw/updater/prod/info.json", &mut body)
         .unwrap_or_else(|error| {
@@ -27,6 +28,7 @@ fn update(directory: String) {
         });
     let resp: Info = serde_json::from_str(&str::from_utf8(&body).unwrap()).unwrap();
 
+    // iterate cdn files
     for resp_file in resp.files {
         let file_path = Path::join(install_dir, Path::new(&resp_file.name));
         let file_dir = file_path.parent().unwrap();
@@ -50,13 +52,15 @@ fn update(directory: String) {
             });
         }
 
+        // download file
         let url = format!("{}{}", &resp.base_url, &resp_file.hash);
-
-        let mut f = fs::File::create(&file_path).unwrap_or_else(|error| {
-            panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
-        });
         let mut body = Vec::new();
         http_req::request::get(&url, &mut body).unwrap_or_else(|error| {
+            panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
+        });
+
+        // write file
+        let mut f = fs::File::create(&file_path).unwrap_or_else(|error| {
             panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
         });
         f.write_all(&body).unwrap_or_else(|error| {
