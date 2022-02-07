@@ -1,45 +1,72 @@
 use clap::Parser;
 use colored::*;
-use std::{fs, io::Write, path::Path, str};
+use std::{
+    fs,
+    io::Write,
+    path::{Path, PathBuf},
+    str,
+};
 
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct Info {
+struct CdnInfo {
     // revision: u16,
     base_url: String,
-    files: Vec<PlutoFile>,
+    files: Vec<CdnFile>,
 }
 
 #[derive(serde::Deserialize)]
-struct PlutoFile {
+struct CdnFile {
     name: String,
     // size: u32,
     hash: String,
 }
 
+fn http_get_body(url: &str) -> Vec<u8> {
+    let mut res: Vec<u8> = Vec::new();
+    http_req::request::get(url, &mut res).unwrap_or_else(|error| {
+        panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
+    });
+
+    res
+}
+
+fn http_get_body_string(url: &str) -> String {
+    String::from_utf8(http_get_body(&url)).unwrap()
+}
+
+fn http_download(url: &str, file_path: &PathBuf) {
+    let body = http_get_body(&url);
+
+    let mut f = fs::File::create(&file_path).unwrap_or_else(|error| {
+        panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
+    });
+    f.write_all(&body).unwrap_or_else(|error| {
+        panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
+    });
+}
+
+fn file_get_sha1(path: &PathBuf) -> String {
+    let mut sha1 = sha1_smol::Sha1::new();
+    sha1.update(&fs::read(&path).unwrap());
+    sha1.digest().to_string()
+}
+
 fn update(directory: String) {
     let install_dir = Path::new(&directory);
-
-    // get cdn info
-    let mut body = Vec::new();
-    http_req::request::get("https://cdn.plutonium.pw/updater/prod/info.json", &mut body)
-        .unwrap_or_else(|error| {
-            panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
-        });
-    let resp: Info = serde_json::from_str(&str::from_utf8(&body).unwrap()).unwrap();
+    let cdn_info: CdnInfo = serde_json::from_str(&http_get_body_string(
+        "https://cdn.plutonium.pw/updater/prod/info.json",
+    ))
+    .unwrap();
 
     // iterate cdn files
-    for resp_file in resp.files {
-        let file_path = Path::join(install_dir, Path::new(&resp_file.name));
+    for cdn_file in cdn_info.files {
+        let file_path = Path::join(install_dir, Path::new(&cdn_file.name));
         let file_dir = file_path.parent().unwrap();
 
         if file_path.exists() {
-            let mut sha1 = sha1_smol::Sha1::new();
-            sha1.update(&fs::read(&file_path).unwrap());
-            let local_hash = sha1.digest().to_string();
-
-            if &local_hash == &resp_file.hash {
-                println!("{}: {}", "Checked".cyan(), resp_file.name);
+            if &file_get_sha1(&file_path) == &cdn_file.hash {
+                println!("{}: {}", "Checked".cyan(), cdn_file.name);
                 continue;
             } else {
                 fs::remove_file(&file_path).unwrap_or_else(|error| {
@@ -52,22 +79,11 @@ fn update(directory: String) {
             });
         }
 
-        // download file
-        let url = format!("{}{}", &resp.base_url, &resp_file.hash);
-        let mut body = Vec::new();
-        http_req::request::get(&url, &mut body).unwrap_or_else(|error| {
-            panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
-        });
-
-        // write file
-        let mut f = fs::File::create(&file_path).unwrap_or_else(|error| {
-            panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
-        });
-        f.write_all(&body).unwrap_or_else(|error| {
-            panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
-        });
-
-        println!("{}: {}", "Downloaded".bright_yellow(), &resp_file.name);
+        http_download(
+            &format!("{}{}", &cdn_info.base_url, &cdn_file.hash),
+            &file_path,
+        );
+        println!("{}: {}", "Downloaded".bright_yellow(), &cdn_file.name);
     }
 }
 
