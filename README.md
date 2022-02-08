@@ -12,12 +12,12 @@
 
 ### ToDo
 
-- [ ] Replace clap to reduce dependencies
+~~- [ ] Replace clap to reduce dependencies~~
 - [ ] Implement flags
   - [x] -d, --directory | Download directory
-  - [ ] -f, --force | Force file hash re-check
+  - [x] -f, --force | Force file hash re-check
   - [ ] -l, --launcher | Download launcher assets
   - [ ] -q, --quiet | Hide file actions
   - [ ] -s, --silent | Completely hide output
 - [ ] Set exit codes
-- [ ] Version checking without hash re-check
+- [x] Version checking without hash re-check

@@ -10,7 +10,7 @@ use std::{
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct CdnInfo {
-    // revision: u16,
+    revision: u16,
     base_url: String,
     files: Vec<CdnFile>,
 }
@@ -52,12 +52,55 @@ fn file_get_sha1(path: &PathBuf) -> String {
     sha1.digest().to_string()
 }
 
-fn update(directory: String) {
+fn get_revision(path: &PathBuf) -> u16 {
+    fs::read_to_string(&path)
+        .unwrap_or(String::from("0"))
+        .parse::<u16>()
+        .unwrap_or(0)
+}
+
+fn set_revision(path: &PathBuf, revision: &u16) {
+    let mut revision_file = fs::OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .create(true)
+        .open(&path)
+        .unwrap_or_else(|error| {
+            panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
+        });
+    revision_file
+        .write(revision.to_string().as_bytes())
+        .unwrap_or_else(|error| {
+            panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
+        });
+}
+
+fn update(directory: String, force: bool) {
     let install_dir = Path::new(&directory);
     let cdn_info: CdnInfo = serde_json::from_str(&http_get_body_string(
         "https://cdn.plutonium.pw/updater/prod/info.json",
     ))
     .unwrap();
+
+    let revision_file_path = Path::join(&install_dir, "version.txt");
+    let revision: u16 = get_revision(&revision_file_path);
+
+    println!(
+        "Remote revision: {}",
+        String::from(cdn_info.revision.to_string()).bright_purple()
+    );
+
+    if (revision >= cdn_info.revision) && !force {
+        println!(
+            "Local revision: {}",
+            String::from(revision.to_string()).green()
+        );
+        return;
+    }
+    println!(
+        "Local revision: {}",
+        String::from(revision.to_string()).yellow()
+    );
 
     // iterate cdn files
     for cdn_file in cdn_info.files {
@@ -85,6 +128,8 @@ fn update(directory: String) {
         );
         println!("{}: {}", "Downloaded".bright_yellow(), &cdn_file.name);
     }
+
+    set_revision(&revision_file_path, &cdn_info.revision);
 }
 
 #[cfg(windows)]
@@ -103,13 +148,20 @@ fn setup_env() {
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
+    /// Installation directory
     #[clap(short, long, default_value = "plutonium")]
     directory: String,
+
+    /// Force file hash check, even if version matches
+    #[clap(short, long)]
+    force: bool,
 }
 
 fn main() {
     let args = Args::parse();
 
     setup_env();
-    update(args.directory);
+    update(args.directory, args.force);
+
+    std::process::exit(0);
 }
