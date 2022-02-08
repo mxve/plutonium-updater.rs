@@ -153,7 +153,7 @@ fn update(directory: String, force: bool, launcher: bool, quiet: bool, silent: b
 fn setup_env() {
     // Enable color support
     colored::control::set_virtual_terminal(true).unwrap_or_else(|error| {
-        panic!("\n\nError:\n{:?}", error);
+        colored::control::SHOULD_COLORIZE.set_override(false);
     });
 }
 
