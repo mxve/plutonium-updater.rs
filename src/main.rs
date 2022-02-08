@@ -75,7 +75,7 @@ fn set_revision(path: &PathBuf, revision: &u16) {
         });
 }
 
-fn update(directory: String, force: bool) {
+fn update(directory: String, force: bool, launcher: bool) {
     let install_dir = Path::new(&directory);
     let cdn_info: CdnInfo = serde_json::from_str(&http_get_body_string(
         "https://cdn.plutonium.pw/updater/prod/info.json",
@@ -104,6 +104,11 @@ fn update(directory: String, force: bool) {
 
     // iterate cdn files
     for cdn_file in cdn_info.files {
+        if cdn_file.name.starts_with("launcher") && !launcher {
+            println!("{}: {}", "Skipped".bright_blue(), &cdn_file.name);
+            continue;
+        }
+
         let file_path = Path::join(install_dir, Path::new(&cdn_file.name));
         let file_dir = file_path.parent().unwrap();
 
@@ -155,13 +160,17 @@ struct Args {
     /// Force file hash check, even if version matches
     #[clap(short, long)]
     force: bool,
+
+    /// Download launcher assets
+    #[clap(short, long)]
+    launcher: bool,
 }
 
 fn main() {
     let args = Args::parse();
 
     setup_env();
-    update(args.directory, args.force);
+    update(args.directory, args.force, args.launcher);
 
     std::process::exit(0);
 }
