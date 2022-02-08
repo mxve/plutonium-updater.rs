@@ -1,27 +1,75 @@
-# WIP
+# Plutonium Updater CLI
+#### Stop uploading, start downloading
+###### (So catchy!)
 
-## Plutonium Updater CLI
+![](https://screen.sbs/i/2133v3q6.png)
 
 ### Features
 - Multi-platform
+- Version checking
 - File hash checking
-- Faster than [plutonium-updater-linux](https://github.com/mxve/plutonium-updater-linux)
-  - File hash checking sped up x25
-  - Download speed doubled
-  - ["Benchmark"](https://screen.sbs/ia6lwg5sq)
+
+### Usage
+
+- Download the latest release
+  - [Windows](https://github.com/mxve/plutonium-updater.rs/releases/latest/download/plutonium-updater-x86_64-pc-windows-msvc.zip)
+    - ```https://github.com/mxve/plutonium-updater.rs/releases/latest/download/plutonium-updater-x86_64-pc-windows-msvc.zip```
+  - [Linux](https://github.com/mxve/plutonium-updater.rs/releases/latest/download/plutonium-updater-x86_64-unknown-linux-gnu.tar.gz)
+    - ```https://github.com/mxve/plutonium-updater.rs/releases/latest/download/plutonium-updater-x86_64-unknown-linux-gnu.tar.gz```
+  - [MacOS](https://github.com/mxve/plutonium-updater.rs/releases/latest/download/plutonium-updater-x86_64-apple-darwin.tar.gz) (untested)
+    - ```https://github.com/mxve/plutonium-updater.rs/releases/latest/download/plutonium-updater-x86_64-apple-darwin.tar.gz```
+- Unpack archive
+- Run it
+  - Preferably from a terminal so you can see the output and append the arguments listed below, if needed.
+  - Linux
+    - Unpack
+      - ```tar xfv plutonium-updater-x86_64-unknown-linux-gnu.tar.gz```
+    - Make binary executable
+      - ```chmod +x plutonium-updater```
+    - Run it
+      - ```./plutonium-updater```
+  - Windows
+    - Unpack
+    - Run it
+
+### Examples
+##### Windows update .bat
+```
+@echo off
+set installDir=C:\your_pluto_directory
+plutonium-updater.exe -d "%installDir%"
+```
+
+##### Linux update .sh
+```
+#!/bin/bash
+INSTALLDIR=/home/pluto/pluto_dir
+./plutonium-updater.exe -d "$INSTALLDIR"
+```
+
+##### Repair files
+```
+./plutonium-updater.exe -f
+```
+or
+```
+./plutonium-updater.exe -fd "pluto directory"
+```
+
+### Arguments
+- ```-d, --directory <path>```
+  - Install directory, supports relative and absolute paths
+  - Default: "plutonium"
+- ```-f, --force```
+  - Force file hash re-check even if version matches
+- ```-l, --launcher```
+  - Download launcher assets.
+- ```-q, --quiet```
+  - Hide file actions (Checked, Skipped, Downloaded)
+- ```-s, --silent```
+  - Hide all non-error output
 
 ### Exit codes
 - 0 success
 - 101 error (rust panic)
-
-### ToDo
-
-~~- [ ] Replace clap to reduce dependencies~~
-- [x] Implement flags
-  - [x] -d, --directory | Download directory
-  - [x] -f, --force | Force file hash re-check
-  - [x] -l, --launcher | Download launcher assets
-  - [x] -q, --quiet | Hide file actions
-  - [x] -s, --silent | Completely hide output
-- [x] Set exit codes
-- [x] Version checking without hash re-check
+(Just fail on everything that differs from 0 if you are scripting it)
