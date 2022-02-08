@@ -10,18 +10,18 @@
   - Download speed doubled
   - ["Benchmark"](https://screen.sbs/ia6lwg5sq)
 
-# Exit codes
+### Exit codes
 - 0 success
 - 101 error (rust panic)
 
 ### ToDo
 
 ~~- [ ] Replace clap to reduce dependencies~~
-- [ ] Implement flags
+- [x] Implement flags
   - [x] -d, --directory | Download directory
   - [x] -f, --force | Force file hash re-check
   - [x] -l, --launcher | Download launcher assets
-  - [ ] -q, --quiet | Hide file actions
-  - [ ] -s, --silent | Completely hide output
+  - [x] -q, --quiet | Hide file actions
+  - [x] -s, --silent | Completely hide output
 - [x] Set exit codes
 - [x] Version checking without hash re-check

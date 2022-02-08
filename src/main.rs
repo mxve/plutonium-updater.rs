@@ -75,7 +75,7 @@ fn set_revision(path: &PathBuf, revision: &u16) {
         });
 }
 
-fn update(directory: String, force: bool, launcher: bool) {
+fn update(directory: String, force: bool, launcher: bool, quiet: bool, silent: bool) {
     let install_dir = Path::new(&directory);
     let cdn_info: CdnInfo = serde_json::from_str(&http_get_body_string(
         "https://cdn.plutonium.pw/updater/prod/info.json",
@@ -85,27 +85,35 @@ fn update(directory: String, force: bool, launcher: bool) {
     let revision_file_path = Path::join(&install_dir, "version.txt");
     let revision: u16 = get_revision(&revision_file_path);
 
-    println!(
-        "Remote revision: {}",
-        String::from(cdn_info.revision.to_string()).bright_purple()
-    );
+    if !silent {
+        println!(
+            "Remote revision: {}",
+            String::from(cdn_info.revision.to_string()).bright_purple()
+        );
+    }
 
     if (revision >= cdn_info.revision) && !force {
-        println!(
-            "Local revision: {}",
-            String::from(revision.to_string()).green()
-        );
+        if !silent {
+            println!(
+                "Local revision: {}",
+                String::from(revision.to_string()).green()
+            )
+        };
         return;
     }
-    println!(
-        "Local revision: {}",
-        String::from(revision.to_string()).yellow()
-    );
+    if !silent {
+        println!(
+            "Local revision: {}",
+            String::from(revision.to_string()).yellow()
+        )
+    };
 
     // iterate cdn files
     for cdn_file in cdn_info.files {
         if cdn_file.name.starts_with("launcher") && !launcher {
-            println!("{}: {}", "Skipped".bright_blue(), &cdn_file.name);
+            if !quiet && !silent {
+                println!("{}: {}", "Skipped".bright_blue(), &cdn_file.name)
+            };
             continue;
         }
 
@@ -114,7 +122,9 @@ fn update(directory: String, force: bool, launcher: bool) {
 
         if file_path.exists() {
             if &file_get_sha1(&file_path) == &cdn_file.hash {
-                println!("{}: {}", "Checked".cyan(), cdn_file.name);
+                if !quiet && !silent {
+                    println!("{}: {}", "Checked".cyan(), cdn_file.name)
+                };
                 continue;
             } else {
                 fs::remove_file(&file_path).unwrap_or_else(|error| {
@@ -131,7 +141,9 @@ fn update(directory: String, force: bool, launcher: bool) {
             &format!("{}{}", &cdn_info.base_url, &cdn_file.hash),
             &file_path,
         );
-        println!("{}: {}", "Downloaded".bright_yellow(), &cdn_file.name);
+        if !quiet && !silent {
+            println!("{}: {}", "Downloaded".bright_yellow(), &cdn_file.name)
+        };
     }
 
     set_revision(&revision_file_path, &cdn_info.revision);
@@ -164,13 +176,27 @@ struct Args {
     /// Download launcher assets
     #[clap(short, long)]
     launcher: bool,
+
+    /// Hide file actions
+    #[clap(short, long)]
+    quiet: bool,
+
+    /// Completely hide non-error output
+    #[clap(short, long)]
+    silent: bool,
 }
 
 fn main() {
     let args = Args::parse();
 
     setup_env();
-    update(args.directory, args.force, args.launcher);
+    update(
+        args.directory,
+        args.force,
+        args.launcher,
+        args.quiet,
+        args.silent,
+    );
 
     std::process::exit(0);
 }
