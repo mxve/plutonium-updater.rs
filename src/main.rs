@@ -31,6 +31,13 @@ fn http_download(url: &str, file_path: &PathBuf) {
     });
 }
 
+fn get_cdn_info() -> CdnInfo {
+    serde_json::from_str(&http_get_body_string(
+        "https://cdn.plutonium.pw/updater/prod/info.json",
+    ))
+    .unwrap()
+}
+
 fn file_get_sha1(path: &PathBuf) -> String {
     let mut sha1 = sha1_smol::Sha1::new();
     sha1.update(&fs::read(&path).unwrap());
@@ -82,25 +89,22 @@ struct UpdateStats {
     skipped: u8,
 }
 
-fn update(directory: String, force: bool, launcher: bool, quiet: bool, silent: bool) {
-    let install_dir = Path::new(&directory);
-    let cdn_info: CdnInfo = serde_json::from_str(&http_get_body_string(
-        "https://cdn.plutonium.pw/updater/prod/info.json",
-    ))
-    .unwrap();
+fn update(args: Args) {
+    let install_dir = Path::new(&args.directory);
+    let cdn_info: CdnInfo = get_cdn_info();
 
     let revision_file_path = Path::join(&install_dir, "version.txt");
     let revision: u16 = get_revision(&revision_file_path);
 
-    if !silent {
+    if !args.silent {
         println!(
             "Remote revision: {}",
             String::from(cdn_info.revision.to_string()).bright_purple()
         );
     }
 
-    if (revision >= cdn_info.revision) && !force {
-        if !silent {
+    if (revision >= cdn_info.revision) && !args.force {
+        if !args.silent {
             println!(
                 "Local revision: {}",
                 String::from(revision.to_string()).green()
@@ -109,7 +113,7 @@ fn update(directory: String, force: bool, launcher: bool, quiet: bool, silent: b
         return;
     }
 
-    if !silent {
+    if !args.silent {
         println!(
             "Local revision: {}",
             String::from(revision.to_string()).yellow()
@@ -124,8 +128,8 @@ fn update(directory: String, force: bool, launcher: bool, quiet: bool, silent: b
 
     // iterate cdn files
     for cdn_file in cdn_info.files {
-        if cdn_file.name.starts_with("launcher") && !launcher {
-            if !quiet && !silent {
+        if cdn_file.name.starts_with("launcher") && !args.launcher {
+            if !args.quiet && !args.silent {
                 println!("{}: {}", "Skipped".bright_blue(), &cdn_file.name);
             };
             stats.skipped += 1;
@@ -137,7 +141,7 @@ fn update(directory: String, force: bool, launcher: bool, quiet: bool, silent: b
 
         if file_path.exists() {
             if &file_get_sha1(&file_path) == &cdn_file.hash {
-                if !quiet && !silent {
+                if !args.quiet && !args.silent {
                     println!("{}: {}", "Checked".cyan(), cdn_file.name)
                 };
                 stats.checked += 1;
@@ -157,7 +161,7 @@ fn update(directory: String, force: bool, launcher: bool, quiet: bool, silent: b
             &format!("{}{}", &cdn_info.base_url, &cdn_file.hash),
             &file_path,
         );
-        if !quiet && !silent {
+        if !args.quiet && !args.silent {
             println!("{}: {}", "Downloaded".bright_yellow(), &cdn_file.name)
         };
         stats.downloaded += 1;
@@ -165,7 +169,7 @@ fn update(directory: String, force: bool, launcher: bool, quiet: bool, silent: b
 
     set_revision(&revision_file_path, &cdn_info.revision);
 
-    if !silent {
+    if !args.silent {
         println!(
             "{} hashes checked, {} files downloaded, {} files skipped",
             stats.checked, stats.downloaded, stats.skipped
@@ -216,11 +220,7 @@ fn main() {
 
     setup_env();
     update(
-        args.directory,
-        args.force,
-        args.launcher,
-        args.quiet,
-        args.silent,
+        args
     );
 
     std::process::exit(0);
