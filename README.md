@@ -57,6 +57,10 @@ or
 ```
 
 ### Arguments
+- ```-h, --help```
+  - Show available arguments
+- ```-V, --version```
+  - Print plutonium-updater version
 - ```-d, --directory <path>```
   - Install directory, supports relative and absolute paths
   - Default: "plutonium"
