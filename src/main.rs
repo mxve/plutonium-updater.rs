@@ -31,9 +31,9 @@ fn http_download(url: &str, file_path: &PathBuf) {
     });
 }
 
-fn get_cdn_info() -> CdnInfo {
+fn get_cdn_info(cdn_url: String) -> CdnInfo {
     serde_json::from_str(&http_get_body_string(
-        "https://cdn.plutonium.pw/updater/prod/info.json",
+        &cdn_url,
     ))
     .unwrap()
 }
@@ -91,7 +91,7 @@ struct UpdateStats {
 
 fn update(args: Args) {
     let install_dir = Path::new(&args.directory);
-    let cdn_info: CdnInfo = get_cdn_info();
+    let cdn_info: CdnInfo = get_cdn_info(args.cdn_url);
 
     let revision_file_path = Path::join(&install_dir, "version.txt");
     let revision: u16 = get_revision(&revision_file_path);
@@ -226,6 +226,9 @@ struct Args {
     /// Disable colors
     #[clap(long)]
     no_color: bool,
+
+    #[clap(long, hide(true), default_value = "https://cdn.plutonium.pw/updater/prod/info.json")]
+    cdn_url: String,
 }
 
 fn main() {
@@ -234,7 +237,7 @@ fn main() {
     setup_env(args.no_color);
 
     if args.check {
-        let cdn_info = get_cdn_info();
+        let cdn_info = get_cdn_info(args.cdn_url);
         let revision = get_revision(&Path::join(Path::new(&args.directory), "version.txt"));
 
         if cdn_info.revision > revision {
