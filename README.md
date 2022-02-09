@@ -68,6 +68,10 @@ or
   - Hide file actions (Checked, Skipped, Downloaded)
 - ```-s, --silent```
   - Hide all non-error output
+- ```-c, --check```
+  - Compares local version to remote
+    - Exit code 0 for up to date
+    - Exit code 1 for outdated
 
 ### Exit codes
 - 0 success

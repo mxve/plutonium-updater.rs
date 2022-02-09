@@ -213,15 +213,28 @@ struct Args {
     /// Completely hide non-error output
     #[clap(short, long)]
     silent: bool,
+
+    /// Check for update, returns exit code 0 for up to date and 1 for outdated
+    #[clap(short, long)]
+    check: bool,
 }
 
 fn main() {
     let args = Args::parse();
 
     setup_env();
-    update(
-        args
-    );
+
+    if args.check {
+        let cdn_info = get_cdn_info();
+        let revision = get_revision(&Path::join(Path::new(&args.directory), "version.txt"));
+
+        if cdn_info.revision > revision {
+            std::process::exit(1);
+        } else {
+            std::process::exit(0);
+        }
+    }
+    update(args);
 
     std::process::exit(0);
 }
