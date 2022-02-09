@@ -7,21 +7,6 @@ use std::{
     str,
 };
 
-#[derive(serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct CdnInfo {
-    revision: u16,
-    base_url: String,
-    files: Vec<CdnFile>,
-}
-
-#[derive(serde::Deserialize)]
-struct CdnFile {
-    name: String,
-    // size: u32,
-    hash: String,
-}
-
 fn http_get_body(url: &str) -> Vec<u8> {
     let mut res: Vec<u8> = Vec::new();
     http_req::request::get(url, &mut res).unwrap_or_else(|error| {
@@ -75,6 +60,28 @@ fn set_revision(path: &PathBuf, revision: &u16) {
         });
 }
 
+#[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct CdnInfo {
+    revision: u16,
+    base_url: String,
+    files: Vec<CdnFile>,
+}
+
+#[derive(serde::Deserialize)]
+struct CdnFile {
+    name: String,
+    // size: u32,
+    hash: String,
+}
+
+#[derive(Debug)]
+struct UpdateStats {
+    checked: u8,
+    downloaded: u8,
+    skipped: u8,
+}
+
 fn update(directory: String, force: bool, launcher: bool, quiet: bool, silent: bool) {
     let install_dir = Path::new(&directory);
     let cdn_info: CdnInfo = serde_json::from_str(&http_get_body_string(
@@ -101,6 +108,7 @@ fn update(directory: String, force: bool, launcher: bool, quiet: bool, silent: b
         };
         return;
     }
+
     if !silent {
         println!(
             "Local revision: {}",
@@ -108,12 +116,19 @@ fn update(directory: String, force: bool, launcher: bool, quiet: bool, silent: b
         )
     };
 
+    let mut stats = UpdateStats {
+        checked: 0,
+        downloaded: 0,
+        skipped: 0,
+    };
+
     // iterate cdn files
     for cdn_file in cdn_info.files {
         if cdn_file.name.starts_with("launcher") && !launcher {
             if !quiet && !silent {
-                println!("{}: {}", "Skipped".bright_blue(), &cdn_file.name)
+                println!("{}: {}", "Skipped".bright_blue(), &cdn_file.name);
             };
+            stats.skipped += 1;
             continue;
         }
 
@@ -125,6 +140,7 @@ fn update(directory: String, force: bool, launcher: bool, quiet: bool, silent: b
                 if !quiet && !silent {
                     println!("{}: {}", "Checked".cyan(), cdn_file.name)
                 };
+                stats.checked += 1;
                 continue;
             } else {
                 fs::remove_file(&file_path).unwrap_or_else(|error| {
@@ -144,15 +160,24 @@ fn update(directory: String, force: bool, launcher: bool, quiet: bool, silent: b
         if !quiet && !silent {
             println!("{}: {}", "Downloaded".bright_yellow(), &cdn_file.name)
         };
+        stats.downloaded += 1;
     }
 
     set_revision(&revision_file_path, &cdn_info.revision);
+
+    if !silent {
+        println!(
+            "{} hashes checked, {} files downloaded, {} files skipped",
+            stats.checked, stats.downloaded, stats.skipped
+        );
+    };
 }
 
 #[cfg(windows)]
 fn setup_env() {
     // Enable color support
     colored::control::set_virtual_terminal(true).unwrap_or_else(|error| {
+        println!("{:#?}", error);
         colored::control::SHOULD_COLORIZE.set_override(false);
     });
 }
