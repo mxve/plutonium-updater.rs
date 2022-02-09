@@ -178,17 +178,22 @@ fn update(args: Args) {
 }
 
 #[cfg(windows)]
-fn setup_env() {
-    // Enable color support
-    colored::control::set_virtual_terminal(true).unwrap_or_else(|error| {
-        println!("{:#?}", error);
+fn setup_env(no_color: bool) {
+    if no_color {
         colored::control::SHOULD_COLORIZE.set_override(false);
-    });
+    } else {
+        colored::control::set_virtual_terminal(true).unwrap_or_else(|error| {
+            println!("{:#?}", error);
+            colored::control::SHOULD_COLORIZE.set_override(false);
+        });
+    }
 }
 
 #[cfg(not(windows))]
-fn setup_env() {
-    // Empty for now
+fn setup_env(no_color: bool) {
+    if no_color {
+        colored::control::SHOULD_COLORIZE.set_override(false);
+    }
 }
 
 #[derive(Parser, Debug)]
@@ -217,12 +222,16 @@ struct Args {
     /// Check for update, returns exit code 0 for up to date and 1 for outdated
     #[clap(short, long)]
     check: bool,
+
+    /// Disable colors
+    #[clap(long)]
+    no_color: bool,
 }
 
 fn main() {
     let args = Args::parse();
 
-    setup_env();
+    setup_env(args.no_color);
 
     if args.check {
         let cdn_info = get_cdn_info();

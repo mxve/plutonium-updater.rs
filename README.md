@@ -72,6 +72,8 @@ or
   - Compares local version to remote
     - Exit code 0 for up to date
     - Exit code 1 for outdated
+- ```--no-color```
+  - Disable colors
 
 ### Exit codes
 - 0 success
