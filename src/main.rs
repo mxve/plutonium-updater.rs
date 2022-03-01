@@ -232,7 +232,8 @@ struct Args {
 }
 
 fn main() {
-    let args = Args::parse();
+    let mut args = Args::parse();
+    args.directory = args.directory.replace("\"", "");
 
     setup_env(args.no_color);
 
