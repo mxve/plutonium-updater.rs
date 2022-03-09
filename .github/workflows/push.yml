@@ -19,3 +19,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: build
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }}
+          path: target/debug/plutonium-updater*
