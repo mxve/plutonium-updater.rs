@@ -31,7 +31,11 @@ pub struct Args {
     #[clap(long)]
     pub no_color: bool,
 
-    #[clap(long, hide(true), default_value = "https://cdn.plutonium.pw/updater/prod/info.json")]
+    #[clap(
+        long,
+        hide(true),
+        default_value = "https://cdn.plutonium.pw/updater/prod/info.json"
+    )]
     pub cdn_url: String,
 }
 

@@ -1,13 +1,8 @@
 use colored::*;
-use std::{
-    fs,
-    io::Write,
-    path::{Path, PathBuf},
-    str,
-};
+use std::{fs, io::Write, path::Path, str};
 
-mod http;
 mod args;
+mod http;
 
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -32,26 +27,23 @@ struct UpdateStats {
 }
 
 fn get_cdn_info(cdn_url: String) -> CdnInfo {
-    serde_json::from_str(&http::get_body_string(
-        &cdn_url,
-    ))
-    .unwrap()
+    serde_json::from_str(&http::get_body_string(&cdn_url)).unwrap()
 }
 
-fn file_get_sha1(path: &PathBuf) -> String {
+fn file_get_sha1(path: &Path) -> String {
     let mut sha1 = sha1_smol::Sha1::new();
     sha1.update(&fs::read(&path).unwrap());
     sha1.digest().to_string()
 }
 
-fn get_revision(path: &PathBuf) -> u16 {
+fn get_revision(path: &Path) -> u16 {
     fs::read_to_string(&path)
-        .unwrap_or(String::from("0"))
+        .unwrap_or_else(|_| String::from("0"))
         .parse::<u16>()
         .unwrap_or(0)
 }
 
-fn set_revision(path: &PathBuf, revision: &u16) {
+fn set_revision(path: &Path, revision: &u16) {
     let mut revision_file = fs::OpenOptions::new()
         .write(true)
         .truncate(true)
@@ -61,7 +53,7 @@ fn set_revision(path: &PathBuf, revision: &u16) {
             panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
         });
     revision_file
-        .write(revision.to_string().as_bytes())
+        .write_all(revision.to_string().as_bytes())
         .unwrap_or_else(|error| {
             panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
         });
@@ -71,13 +63,13 @@ fn update(args: args::Args) {
     let install_dir = Path::new(&args.directory);
     let cdn_info: CdnInfo = get_cdn_info(args.cdn_url);
 
-    let revision_file_path = Path::join(&install_dir, "version.txt");
+    let revision_file_path = Path::join(install_dir, "version.txt");
     let revision: u16 = get_revision(&revision_file_path);
 
     if !args.silent {
         println!(
             "Remote revision: {}",
-            String::from(cdn_info.revision.to_string()).bright_purple()
+            cdn_info.revision.to_string().bright_purple()
         );
     }
 
@@ -85,19 +77,13 @@ fn update(args: args::Args) {
     // or if explicitly requested to update
     if (revision >= cdn_info.revision) && !args.force {
         if !args.silent {
-            println!(
-                "Local revision: {}",
-                String::from(revision.to_string()).green()
-            )
+            println!("Local revision: {}", revision.to_string().green())
         };
         return;
     }
 
     if !args.silent {
-        println!(
-            "Local revision: {}",
-            String::from(revision.to_string()).yellow()
-        )
+        println!("Local revision: {}", revision.to_string().yellow())
     };
 
     // keep track of processed files
@@ -124,7 +110,7 @@ fn update(args: args::Args) {
         if file_path.exists() {
             // if local sha1 is the same as remote we skip the file
             // otherwise delete local file
-            if &file_get_sha1(&file_path) == &cdn_file.hash {
+            if file_get_sha1(&file_path) == cdn_file.hash {
                 if !args.quiet && !args.silent {
                     println!("{}: {}", "Checked".cyan(), cdn_file.name)
                 };
