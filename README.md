@@ -1,9 +1,8 @@
+![](https://img.shields.io/github/workflow/status/mxve/plutonium-updater.rs/indev?label=Build%20status&style=for-the-badge) [![](https://img.shields.io/github/v/release/mxve/plutonium-updater.rs?label=Latest%20release&logo=github&style=for-the-badge)](https://github.com/mxve/plutonium-updater.rs/releases/latest) ![](https://img.shields.io/github/downloads/mxve/plutonium-updater.rs/total?label=total%20downloads&style=for-the-badge)
+
 # Plutonium Updater CLI
 #### Stop uploading, start downloading
 ###### (So catchy!)
-
-![](https://img.shields.io/github/workflow/status/mxve/plutonium-updater.rs/indev?label=Build%20status&style=for-the-badge) 
-[![](https://img.shields.io/github/v/release/mxve/plutonium-updater.rs?label=Latest%20release&logo=github&style=for-the-badge)](https://github.com/mxve/plutonium-updater.rs/releases/latest) ![](https://img.shields.io/github/downloads/mxve/plutonium-updater.rs/total?label=total%20downloads&style=for-the-badge)
 
 ![](https://screen.sbs/i/2133v3q6.png)
 
