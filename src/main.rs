@@ -1,4 +1,3 @@
-use clap::Parser;
 use colored::*;
 use std::{
     fs,
@@ -7,32 +6,33 @@ use std::{
     str,
 };
 
-fn http_get_body(url: &str) -> Vec<u8> {
-    let mut res: Vec<u8> = Vec::new();
-    http_req::request::get(url, &mut res).unwrap_or_else(|error| {
-        panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
-    });
+mod http;
+mod args;
 
-    res
+#[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct CdnInfo {
+    revision: u16,
+    base_url: String,
+    files: Vec<CdnFile>,
 }
 
-fn http_get_body_string(url: &str) -> String {
-    String::from_utf8(http_get_body(&url)).unwrap()
+#[derive(serde::Deserialize)]
+struct CdnFile {
+    name: String,
+    // size: u32,
+    hash: String,
 }
 
-fn http_download(url: &str, file_path: &PathBuf) {
-    let body = http_get_body(&url);
-
-    let mut f = fs::File::create(&file_path).unwrap_or_else(|error| {
-        panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
-    });
-    f.write_all(&body).unwrap_or_else(|error| {
-        panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
-    });
+#[derive(Debug)]
+struct UpdateStats {
+    checked: u8,
+    downloaded: u8,
+    skipped: u8,
 }
 
 fn get_cdn_info(cdn_url: String) -> CdnInfo {
-    serde_json::from_str(&http_get_body_string(
+    serde_json::from_str(&http::get_body_string(
         &cdn_url,
     ))
     .unwrap()
@@ -67,29 +67,7 @@ fn set_revision(path: &PathBuf, revision: &u16) {
         });
 }
 
-#[derive(serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct CdnInfo {
-    revision: u16,
-    base_url: String,
-    files: Vec<CdnFile>,
-}
-
-#[derive(serde::Deserialize)]
-struct CdnFile {
-    name: String,
-    // size: u32,
-    hash: String,
-}
-
-#[derive(Debug)]
-struct UpdateStats {
-    checked: u8,
-    downloaded: u8,
-    skipped: u8,
-}
-
-fn update(args: Args) {
+fn update(args: args::Args) {
     let install_dir = Path::new(&args.directory);
     let cdn_info: CdnInfo = get_cdn_info(args.cdn_url);
 
@@ -103,6 +81,8 @@ fn update(args: Args) {
         );
     }
 
+    // only update if remote version number is bigger than local
+    // or if explicitly requested to update
     if (revision >= cdn_info.revision) && !args.force {
         if !args.silent {
             println!(
@@ -120,6 +100,7 @@ fn update(args: Args) {
         )
     };
 
+    // keep track of processed files
     let mut stats = UpdateStats {
         checked: 0,
         downloaded: 0,
@@ -128,6 +109,7 @@ fn update(args: Args) {
 
     // iterate cdn files
     for cdn_file in cdn_info.files {
+        // skip launcher files if not explicitly asked for
         if cdn_file.name.starts_with("launcher") && !args.launcher {
             if !args.quiet && !args.silent {
                 println!("{}: {}", "Skipped".bright_blue(), &cdn_file.name);
@@ -140,6 +122,8 @@ fn update(args: Args) {
         let file_dir = file_path.parent().unwrap();
 
         if file_path.exists() {
+            // if local sha1 is the same as remote we skip the file
+            // otherwise delete local file
             if &file_get_sha1(&file_path) == &cdn_file.hash {
                 if !args.quiet && !args.silent {
                     println!("{}: {}", "Checked".cyan(), cdn_file.name)
@@ -152,15 +136,19 @@ fn update(args: Args) {
                 });
             }
         } else {
+            // local directory doesnt exist, create it
+            // no need to check for existing files
             fs::create_dir_all(&file_dir).unwrap_or_else(|error| {
                 panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
             });
         }
 
-        http_download(
+        // download file from cdn, using base url + file hash to build file url
+        http::download_file(
             &format!("{}{}", &cdn_info.base_url, &cdn_file.hash),
             &file_path,
         );
+
         if !args.quiet && !args.silent {
             println!("{}: {}", "Downloaded".bright_yellow(), &cdn_file.name)
         };
@@ -177,6 +165,7 @@ fn update(args: Args) {
     };
 }
 
+// Setup OS specific stuff
 #[cfg(windows)]
 fn setup_env(no_color: bool) {
     if no_color {
@@ -196,44 +185,8 @@ fn setup_env(no_color: bool) {
     }
 }
 
-#[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
-struct Args {
-    /// Installation directory
-    #[clap(short, long, default_value = "plutonium")]
-    directory: String,
-
-    /// Force file hash check, even if version matches
-    #[clap(short, long)]
-    force: bool,
-
-    /// Download launcher assets
-    #[clap(short, long)]
-    launcher: bool,
-
-    /// Hide file actions
-    #[clap(short, long)]
-    quiet: bool,
-
-    /// Completely hide non-error output
-    #[clap(short, long)]
-    silent: bool,
-
-    /// Check for update, returns exit code 0 for up to date and 1 for outdated
-    #[clap(short, long)]
-    check: bool,
-
-    /// Disable colors
-    #[clap(long)]
-    no_color: bool,
-
-    #[clap(long, hide(true), default_value = "https://cdn.plutonium.pw/updater/prod/info.json")]
-    cdn_url: String,
-}
-
 fn main() {
-    let mut args = Args::parse();
-    args.directory = args.directory.replace("\"", "");
+    let args = args::get();
 
     setup_env(args.no_color);
 
