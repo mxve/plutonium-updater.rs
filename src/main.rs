@@ -3,19 +3,19 @@ use std::{fs, io::Write, path::Path, str};
 
 mod args;
 mod http;
-
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 struct CdnInfo {
+    product: String,
     revision: u16,
     base_url: String,
     files: Vec<CdnFile>,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, serde::Serialize)]
 struct CdnFile {
     name: String,
-    // size: u32,
+    size: u32,
     hash: String,
 }
 
@@ -26,8 +26,37 @@ struct UpdateStats {
     skipped: u8,
 }
 
-fn get_cdn_info(cdn_url: String) -> CdnInfo {
-    serde_json::from_str(&http::get_body_string(&cdn_url)).unwrap()
+fn parse_info(info: &str) -> CdnInfo {
+    serde_json::from_str(info).unwrap()
+}
+
+// Read file to serde json CdnInfo
+fn read_info_file(filepath: &Path) -> CdnInfo {
+    let info_file = fs::read_to_string(&filepath).unwrap_or_else(|_| {
+        "{\"product\":\"plutonium-core-unknown\",
+                 \"revision\":0,
+                 \"baseUrl\":\"\",
+                 \"files\":[]}"
+            .to_string()
+    });
+    parse_info(&info_file)
+}
+
+// Write serde json CdnInfo to file
+fn write_info_file(info: CdnInfo, filepath: &Path) {
+    let mut local_info_file = fs::OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .create(true)
+        .open(filepath)
+        .unwrap_or_else(|error| {
+            panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
+        });
+    local_info_file
+        .write_all(serde_json::to_string_pretty(&info).unwrap().as_bytes())
+        .unwrap_or_else(|error| {
+            panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
+        });
 }
 
 fn file_get_sha1(path: &Path) -> String {
@@ -36,35 +65,8 @@ fn file_get_sha1(path: &Path) -> String {
     sha1.digest().to_string()
 }
 
-fn get_revision(path: &Path) -> u16 {
-    fs::read_to_string(&path)
-        .unwrap_or_else(|_| String::from("0"))
-        .parse::<u16>()
-        .unwrap_or(0)
-}
-
-fn set_revision(path: &Path, revision: &u16) {
-    let mut revision_file = fs::OpenOptions::new()
-        .write(true)
-        .truncate(true)
-        .create(true)
-        .open(&path)
-        .unwrap_or_else(|error| {
-            panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
-        });
-    revision_file
-        .write_all(revision.to_string().as_bytes())
-        .unwrap_or_else(|error| {
-            panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
-        });
-}
-
-fn update(args: args::Args) {
+fn update(args: args::Args, cdn_info: CdnInfo, local_info: CdnInfo) {
     let install_dir = Path::new(&args.directory);
-    let cdn_info: CdnInfo = get_cdn_info(args.cdn_url);
-
-    let revision_file_path = Path::join(install_dir, "version.txt");
-    let revision: u16 = get_revision(&revision_file_path);
 
     if !args.silent {
         println!(
@@ -75,15 +77,21 @@ fn update(args: args::Args) {
 
     // only update if remote version number is bigger than local
     // or if explicitly requested to update
-    if (revision >= cdn_info.revision) && !args.force {
+    if (local_info.revision >= cdn_info.revision) && !args.force {
         if !args.silent {
-            println!("Local revision: {}", revision.to_string().green())
+            println!(
+                "Local revision: {}",
+                local_info.revision.to_string().green()
+            )
         };
         return;
     }
 
     if !args.silent {
-        println!("Local revision: {}", revision.to_string().yellow())
+        println!(
+            "Local revision: {}",
+            local_info.revision.to_string().yellow()
+        )
     };
 
     // keep track of processed files
@@ -94,7 +102,7 @@ fn update(args: args::Args) {
     };
 
     // iterate cdn files
-    for cdn_file in cdn_info.files {
+    for cdn_file in &cdn_info.files {
         // skip launcher files if not explicitly asked for
         if cdn_file.name.starts_with("launcher") && !args.launcher {
             if !args.quiet && !args.silent {
@@ -141,7 +149,7 @@ fn update(args: args::Args) {
         stats.downloaded += 1;
     }
 
-    set_revision(&revision_file_path, &cdn_info.revision);
+    write_info_file(cdn_info, &Path::join(install_dir, "cdn_info.json"));
 
     if !args.silent {
         println!(
@@ -173,20 +181,18 @@ fn setup_env(no_color: bool) {
 
 fn main() {
     let args = args::get();
-
     setup_env(args.no_color);
 
-    if args.check {
-        let cdn_info = get_cdn_info(args.cdn_url);
-        let revision = get_revision(&Path::join(Path::new(&args.directory), "version.txt"));
+    let local_info = read_info_file(&Path::join(Path::new(&args.directory), "cdn_info.json"));
+    let cdn_info = parse_info(&http::get_body_string(&args.cdn_url));
 
-        if cdn_info.revision > revision {
+    if args.check {
+        if cdn_info.revision > local_info.revision {
             std::process::exit(1);
         } else {
             std::process::exit(0);
         }
     }
-    update(args);
-
+    update(args, cdn_info, local_info);
     std::process::exit(0);
 }
