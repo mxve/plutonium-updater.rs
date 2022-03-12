@@ -95,7 +95,6 @@ fn backup(args: &args::Args, local_info: &CdnInfo) {
     for file in &local_info.files {
         let curr_file_path = Path::join(install_dir, Path::new(&file.name));
         let backup_file_path = Path::join(&backup_dir, Path::new(&file.name));
-
         copy_if_exists(&curr_file_path, &backup_file_path);
     }
 
@@ -140,6 +139,7 @@ fn update(args: &args::Args, cdn_info: &CdnInfo, local_info: &CdnInfo) {
         skipped: 0,
     };
 
+    backup(&args, &local_info);
     // iterate cdn files
     for cdn_file in &cdn_info.files {
         // skip launcher files if not explicitly asked for
@@ -233,7 +233,6 @@ fn main() {
         }
     }
 
-    backup(&args, &local_info);
     update(&args, &cdn_info, &local_info);
     std::process::exit(0);
 }
