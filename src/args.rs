@@ -35,6 +35,10 @@ pub struct Args {
     #[clap(long)]
     pub backup_list: bool,
 
+    /// disable backups
+    #[clap(long)]
+    pub no_backup: bool,
+
     #[clap(
         long,
         hide(true),

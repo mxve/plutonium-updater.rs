@@ -174,7 +174,10 @@ fn update(args: &args::Args, cdn_info: &CdnInfo, local_info: &CdnInfo) {
         skipped: 0,
     };
 
-    backup(args, local_info);
+    if !args.no_backup {
+        backup(args, local_info);
+    }
+
     // iterate cdn files
     for cdn_file in &cdn_info.files {
         // skip launcher files if not explicitly asked for
