@@ -104,38 +104,62 @@ fn get_backups(install_dir: &Path) -> Vec<PathBuf> {
     backups
 }
 
-fn backup(args: &args::Args, local_info: &CdnInfo) {
+fn copy_version(info: &CdnInfo, source_dir: &Path, destination_dir: &Path) {
+    // copy files
+    for file in &info.files {
+        let source_file_path = Path::join(source_dir, Path::new(&file.name));
+        let dest_file_path = Path::join(destination_dir, Path::new(&file.name));
+        copy_if_exists(&source_file_path, &dest_file_path);
+    }
+
+    // copy cdn_info.json
+    let source_file_path = Path::join(source_dir, "cdn_info.json");
+    let dest_file_path = Path::join(destination_dir, "cdn_info.json");
+    copy_if_exists(&source_file_path, &dest_file_path);
+}
+
+fn backup(args: &args::Args, local_info: &CdnInfo, delete: bool) {
     let install_dir = Path::new(&args.directory);
     let backup_dir: PathBuf = [&args.directory, "backup", &local_info.revision.to_string()]
         .iter()
         .collect();
 
-    // get existing backups
-    let backups = get_backups(&install_dir);
+    if delete {
+        // get existing backups
+        let backups = get_backups(install_dir);
 
-    // delete everything but latest 3 backups.
-    // hopefully above .sort will return dirs in the right order
-    // otherwise we'll have to get directory timestamps
-    if backups.len() > 3 {
-        for backup in backups.iter().enumerate().take(backups.len() - 2) {
-            println!("{:?}", backup.1);
-            fs::remove_dir_all(backup.1).unwrap_or_else(|error| {
-                panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
-            });
+        // delete everything but latest 3 backups.
+        // hopefully above .sort will return dirs in the right order
+        // otherwise we'll have to get directory timestamps
+        if backups.len() > 3 {
+            for backup in backups.iter().enumerate().take(backups.len() - 2) {
+                println!("{:?}", backup.1);
+                fs::remove_dir_all(backup.1).unwrap_or_else(|error| {
+                    panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
+                });
+            }
         }
     }
 
-    // copy files
-    for file in &local_info.files {
-        let curr_file_path = Path::join(install_dir, Path::new(&file.name));
-        let backup_file_path = Path::join(&backup_dir, Path::new(&file.name));
-        copy_if_exists(&curr_file_path, &backup_file_path);
-    }
+    copy_version(local_info, install_dir, &backup_dir);
+}
 
-    // copy cdn_info.json
-    let curr_cdn_info = Path::join(install_dir, "cdn_info.json");
-    let backup_cdn_info = Path::join(&backup_dir, "cdn_info.json");
-    copy_if_exists(&curr_cdn_info, &backup_cdn_info);
+fn restore_backup(args: args::Args) {
+    let install_dir = Path::new(&args.directory);
+    let backup_dir: PathBuf = [&args.directory, "backup", &args.backup_restore]
+        .iter()
+        .collect();
+
+    if backup_dir.exists() {
+        let backup_info = read_info_file(&Path::join(&backup_dir, "cdn_info.json"));
+        copy_version(&backup_info, &backup_dir, install_dir);
+    } else {
+        panic!(
+            "\n\n{}:\nBackup <{}> not found",
+            "Error".bright_red(),
+            &args.backup_restore
+        );
+    }
 }
 
 fn update(args: &args::Args, cdn_info: &CdnInfo, local_info: &CdnInfo) {
@@ -175,7 +199,7 @@ fn update(args: &args::Args, cdn_info: &CdnInfo, local_info: &CdnInfo) {
     };
 
     if !args.no_backup {
-        backup(args, local_info);
+        backup(args, local_info, true);
     }
 
     // iterate cdn files
@@ -281,6 +305,12 @@ fn main() {
         for b in backups {
             println!("      {}", b.file_name().unwrap().to_str().unwrap());
         }
+        std::process::exit(0);
+    }
+
+    if args.backup_restore != "undefined" {
+        backup(&args, &local_info, false);
+        restore_backup(args);
         std::process::exit(0);
     }
 

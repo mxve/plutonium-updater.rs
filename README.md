@@ -10,6 +10,9 @@
 - Multi-platform
 - Version checking
 - File hash checking
+- Automatic version backups
+  - last 3 versions
+  - Doesn't include custom content (scripts, usermaps..)
 
 ### Usage
 
@@ -80,6 +83,12 @@ or
     - Exit code 1 for outdated
 - ```--no-color```
   - Disable colors
+- ```--no-backup```
+  - Don't create backup
+- ```--backup-list```
+  - List available backups
+- ```--backup-restore <backup>```
+  - Restore backed up version
 
 ### Exit codes
 - 0 success

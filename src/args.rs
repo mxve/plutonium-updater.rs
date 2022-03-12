@@ -35,6 +35,10 @@ pub struct Args {
     #[clap(long)]
     pub backup_list: bool,
 
+    /// Restore backup
+    #[clap(long, default_value = "undefined")]
+    pub backup_restore: String,
+
     /// disable backups
     #[clap(long)]
     pub no_backup: bool,
