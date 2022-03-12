@@ -98,6 +98,12 @@ fn get_subdirs(dir: &Path) -> Result<Vec<PathBuf>, io::Error> {
         .collect())
 }
 
+fn get_backups(install_dir: &Path) -> Vec<PathBuf> {
+    let mut backups = get_subdirs(&Path::join(install_dir, "backup")).unwrap_or_else(|_| vec![]);
+    backups.sort();
+    backups
+}
+
 fn backup(args: &args::Args, local_info: &CdnInfo) {
     let install_dir = Path::new(&args.directory);
     let backup_dir: PathBuf = [&args.directory, "backup", &local_info.revision.to_string()]
@@ -105,8 +111,7 @@ fn backup(args: &args::Args, local_info: &CdnInfo) {
         .collect();
 
     // get existing backups
-    let mut backups = get_subdirs(&Path::join(install_dir, "backup")).unwrap_or_else(|_| vec![]);
-    backups.sort();
+    let backups = get_backups(&install_dir);
 
     // delete everything but latest 3 backups.
     // hopefully above .sort will return dirs in the right order
@@ -261,6 +266,19 @@ fn main() {
         } else {
             std::process::exit(0);
         }
+    }
+
+    if args.backup_list {
+        let backups = get_backups(Path::new(&args.directory));
+        println!(
+            "Installed version: {}",
+            local_info.revision.to_string().green()
+        );
+        println!("Backups:");
+        for b in backups {
+            println!("      {}", b.file_name().unwrap().to_str().unwrap());
+        }
+        std::process::exit(0);
     }
 
     update(&args, &cdn_info, &local_info);

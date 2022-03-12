@@ -31,6 +31,10 @@ pub struct Args {
     #[clap(long)]
     pub no_color: bool,
 
+    /// List backups
+    #[clap(long)]
+    pub backup_list: bool,
+
     #[clap(
         long,
         hide(true),
