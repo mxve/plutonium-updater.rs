@@ -85,6 +85,8 @@ or
   - Disable colors
 - ```--no-backup```
   - Don't create backup
+- ```--backup```
+  - Create/update backup of current version
 - ```--backup-list```
   - List available backups
 - ```--backup-restore <backup>```

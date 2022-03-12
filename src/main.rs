@@ -133,7 +133,7 @@ fn backup(args: &args::Args, local_info: &CdnInfo, delete: bool) {
         // otherwise we'll have to get directory timestamps
         if backups.len() > 3 {
             for backup in backups.iter().enumerate().take(backups.len() - 2) {
-                println!("{:?}", backup.1);
+                println!("Removing old backup {}", backup.1.file_name().unwrap().to_str().unwrap());
                 fs::remove_dir_all(backup.1).unwrap_or_else(|error| {
                     panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
                 });
@@ -311,6 +311,11 @@ fn main() {
     if args.backup_restore != "undefined" {
         backup(&args, &local_info, false);
         restore_backup(args);
+        std::process::exit(0);
+    }
+
+    if args.backup {
+        backup(&args, &local_info, false);
         std::process::exit(0);
     }
 
