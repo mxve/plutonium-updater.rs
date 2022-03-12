@@ -1,6 +1,6 @@
 use colored::*;
 use std::{
-    fs,
+    fs, io,
     io::Write,
     path::{Path, PathBuf},
     str,
@@ -86,18 +86,48 @@ fn copy_if_exists(origin: &Path, destination: &Path) {
     }
 }
 
+// as you may have noticed this seems to be well written code.
+// as you may have guessed, i didnt write this code.
+// https://stackoverflow.com/a/58063083
+fn get_subdirs(dir: &Path) -> Result<Vec<PathBuf>, io::Error> {
+    Ok(fs::read_dir(dir)?
+        .into_iter()
+        .filter(|r| r.is_ok())
+        .map(|r| r.unwrap().path())
+        .filter(|r| r.is_dir())
+        .collect())
+}
+
 fn backup(args: &args::Args, local_info: &CdnInfo) {
     let install_dir = Path::new(&args.directory);
     let backup_dir: PathBuf = [&args.directory, "backup", &local_info.revision.to_string()]
         .iter()
         .collect();
 
+    // get existing backups
+    let mut backups = get_subdirs(&Path::join(install_dir, "backup")).unwrap_or_else(|_| vec![]);
+    backups.sort();
+
+    // delete everything but latest 3 backups.
+    // hopefully above .sort will return dirs in the right order
+    // otherwise we'll have to get directory timestamps
+    if backups.len() > 3 {
+        for backup in backups.iter().enumerate().take(backups.len() - 2) {
+            println!("{:?}", backup.1);
+            fs::remove_dir_all(backup.1).unwrap_or_else(|error| {
+                panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
+            });
+        }
+    }
+
+    // copy files
     for file in &local_info.files {
         let curr_file_path = Path::join(install_dir, Path::new(&file.name));
         let backup_file_path = Path::join(&backup_dir, Path::new(&file.name));
         copy_if_exists(&curr_file_path, &backup_file_path);
     }
 
+    // copy cdn_info.json
     let curr_cdn_info = Path::join(install_dir, "cdn_info.json");
     let backup_cdn_info = Path::join(&backup_dir, "cdn_info.json");
     copy_if_exists(&curr_cdn_info, &backup_cdn_info);
@@ -139,7 +169,7 @@ fn update(args: &args::Args, cdn_info: &CdnInfo, local_info: &CdnInfo) {
         skipped: 0,
     };
 
-    backup(&args, &local_info);
+    backup(args, local_info);
     // iterate cdn files
     for cdn_file in &cdn_info.files {
         // skip launcher files if not explicitly asked for
