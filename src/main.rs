@@ -1,5 +1,10 @@
 use colored::*;
-use std::{fs, io::Write, path::Path, str};
+use std::{
+    fs,
+    io::Write,
+    path::{Path, PathBuf},
+    str,
+};
 
 mod args;
 mod http;
@@ -43,7 +48,7 @@ fn read_info_file(filepath: &Path) -> CdnInfo {
 }
 
 // Write serde json CdnInfo to file
-fn write_info_file(info: CdnInfo, filepath: &Path) {
+fn write_info_file(info: &CdnInfo, filepath: &Path) {
     let mut local_info_file = fs::OpenOptions::new()
         .write(true)
         .truncate(true)
@@ -65,7 +70,41 @@ fn file_get_sha1(path: &Path) -> String {
     sha1.digest().to_string()
 }
 
-fn update(args: args::Args, cdn_info: CdnInfo, local_info: CdnInfo) {
+fn copy_if_exists(origin: &Path, destination: &Path) {
+    if origin.exists() {
+        let file_dir = destination.parent().unwrap();
+
+        if !file_dir.exists() {
+            fs::create_dir_all(&file_dir).unwrap_or_else(|error| {
+                panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
+            });
+        }
+
+        fs::copy(&origin, destination).unwrap_or_else(|error| {
+            panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
+        });
+    }
+}
+
+fn backup(args: &args::Args, local_info: &CdnInfo) {
+    let install_dir = Path::new(&args.directory);
+    let backup_dir: PathBuf = [&args.directory, "backup", &local_info.revision.to_string()]
+        .iter()
+        .collect();
+
+    for file in &local_info.files {
+        let curr_file_path = Path::join(install_dir, Path::new(&file.name));
+        let backup_file_path = Path::join(&backup_dir, Path::new(&file.name));
+
+        copy_if_exists(&curr_file_path, &backup_file_path);
+    }
+
+    let curr_cdn_info = Path::join(install_dir, "cdn_info.json");
+    let backup_cdn_info = Path::join(&backup_dir, "cdn_info.json");
+    copy_if_exists(&curr_cdn_info, &backup_cdn_info);
+}
+
+fn update(args: &args::Args, cdn_info: &CdnInfo, local_info: &CdnInfo) {
     let install_dir = Path::new(&args.directory);
 
     if !args.silent {
@@ -193,6 +232,8 @@ fn main() {
             std::process::exit(0);
         }
     }
-    update(args, cdn_info, local_info);
+
+    backup(&args, &local_info);
+    update(&args, &cdn_info, &local_info);
     std::process::exit(0);
 }
