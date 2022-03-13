@@ -98,9 +98,13 @@ fn get_subdirs(dir: &Path) -> Result<Vec<PathBuf>, io::Error> {
         .collect())
 }
 
-fn get_backups(install_dir: &Path) -> Vec<PathBuf> {
-    let mut backups = get_subdirs(&Path::join(install_dir, "backup")).unwrap_or_else(|_| vec![]);
-    backups.sort();
+fn get_backups(install_dir: &Path) -> Vec<u16> {
+    let dirs = get_subdirs(&Path::join(install_dir, "backup")).unwrap_or_else(|_| vec![]);
+    let mut backups: Vec<u16> = vec![];
+    for d in dirs {
+        backups.push(d.file_name().unwrap().to_string_lossy().parse().unwrap())
+    }
+    backups.sort_unstable();
     backups
 }
 
@@ -129,12 +133,15 @@ fn backup(args: &args::Args, local_info: &CdnInfo, delete: bool) {
         let backups = get_backups(install_dir);
 
         // delete everything but latest 3 backups.
-        // hopefully above .sort will return dirs in the right order
-        // otherwise we'll have to get directory timestamps
         if backups.len() > 3 {
             for backup in backups.iter().enumerate().take(backups.len() - 2) {
-                println!("Removing old backup {}", backup.1.file_name().unwrap().to_str().unwrap());
-                fs::remove_dir_all(backup.1).unwrap_or_else(|error| {
+                let backup_path: PathBuf = [&args.directory, "backup", &backup.1.to_string()]
+                    .iter()
+                    .collect();
+
+                println!("Removing old backup {}", backup_path.display());
+
+                fs::remove_dir_all(backup_path).unwrap_or_else(|error| {
                     panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
                 });
             }
@@ -303,7 +310,7 @@ fn main() {
         );
         println!("Backups:");
         for b in backups {
-            println!("      {}", b.file_name().unwrap().to_str().unwrap());
+            println!("      {}", b);
         }
         std::process::exit(0);
     }

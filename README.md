@@ -10,7 +10,7 @@
 - Multi-platform
 - Version checking
 - File hash checking
-- Automatic version backups
+- Automatic version backups/restoring
   - last 3 versions
   - Doesn't include custom content (scripts, usermaps..)
 
