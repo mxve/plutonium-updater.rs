@@ -2,6 +2,7 @@
 name = "plutonium-updater"
 version = "0.3.0"
 edition = "2021"
+build = "res/build.rs"
 
 [profile.release]
 opt-level = "s"
@@ -15,3 +16,12 @@ http_req = { version = "0.8.1", default-features = false, features = [
 serde = { version = "1.0.136", features = ["derive"] }
 serde_json = "1.0.78"
 sha1_smol = "1.0.0"
+
+[build-dependencies]
+winres = "0.1"
+
+[package.metadata.winres]
+OriginalFilename = "plutonium-updater.exe"
+LegalCopyright = "© mxve 2022 | GPLv3"
+FileDescription = "CLI Updater for plutonium.pw"
+ProductName = "plutonium-updater.rs"
