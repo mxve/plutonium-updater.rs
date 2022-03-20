@@ -81,6 +81,10 @@ or
   - Compares local version to remote
     - Exit code 0 for up to date
     - Exit code 1 for outdated
+- ```--version-local```
+  - Returns local version number, not found/broken = 0
+- ```--version-cdn``
+  - Returns latest version number
 - ```--no-color```
   - Disable colors
 - ```--no-backup```
