@@ -294,6 +294,17 @@ fn main() {
     let local_info = read_info_file(&Path::join(Path::new(&args.directory), "cdn_info.json"));
     let cdn_info = parse_info(&http::get_body_string(&args.cdn_url));
 
+    if args.version_local {
+        println!("{}", local_info.revision);
+        std::process::exit(0);
+    }
+
+    if args.version_cdn {
+        println!("{}", cdn_info.revision);
+        std::process::exit(0);
+    }
+
+    // exit code 1 if outdated, 0 if upto date
     if args.check {
         if cdn_info.revision > local_info.revision {
             std::process::exit(1);
@@ -326,6 +337,7 @@ fn main() {
         std::process::exit(0);
     }
 
+    // program wasn't closed yet, so its seems like we should run updates
     update(&args, &cdn_info, &local_info);
     std::process::exit(0);
 }
