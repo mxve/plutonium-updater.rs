@@ -53,6 +53,14 @@ pub struct Args {
         default_value = "https://cdn.plutonium.pw/updater/prod/info.json"
     )]
     pub cdn_url: String,
+
+    /// get local version
+    #[clap(long)]
+    pub version_local: bool,
+
+    // get cdn version
+    #[clap(long)]
+    pub version_cdn: bool,
 }
 
 pub fn get() -> Args {

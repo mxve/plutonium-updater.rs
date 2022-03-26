@@ -1,5 +1,8 @@
 ![](https://img.shields.io/github/workflow/status/mxve/plutonium-updater.rs/indev?label=Build%20status&style=for-the-badge) [![](https://img.shields.io/github/v/release/mxve/plutonium-updater.rs?label=Latest%20release&logo=github&style=for-the-badge)](https://github.com/mxve/plutonium-updater.rs/releases/latest) ![](https://img.shields.io/github/downloads/mxve/plutonium-updater.rs/total?label=total%20downloads&style=for-the-badge)
 
+[![alt text](https://plutools.pw/assets/img/plutools_64.png)](https://plutools.pw/) [![alt text](http://i.epvpimg.com/2m4qdab.png)](https://discord.gg/SnJQusteNZ) 
+
+
 # Plutonium Updater CLI
 #### Stop uploading, start downloading
 ###### (So catchy!)
@@ -81,6 +84,10 @@ or
   - Compares local version to remote
     - Exit code 0 for up to date
     - Exit code 1 for outdated
+- ```--version-local```
+  - Returns local version number, not found/broken = 0
+- ```--version-cdn``
+  - Returns latest version number
 - ```--no-color```
   - Disable colors
 - ```--no-backup```
