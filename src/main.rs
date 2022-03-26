@@ -38,11 +38,7 @@ fn parse_info(info: &str) -> CdnInfo {
 // Read file to serde json CdnInfo
 fn read_info_file(filepath: &Path) -> CdnInfo {
     let info_file = fs::read_to_string(&filepath).unwrap_or_else(|_| {
-        "{\"product\":\"plutonium-core-unknown\",
-                 \"revision\":0,
-                 \"baseUrl\":\"\",
-                 \"files\":[]}"
-            .to_string()
+        include_str!("assets/default_info.json").to_string()
     });
     parse_info(&info_file)
 }
