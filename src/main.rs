@@ -1,4 +1,6 @@
 use colored::*;
+use indicatif::{ProgressBar, ProgressStyle};
+
 use std::{
     fs, io,
     io::Write,
@@ -29,6 +31,8 @@ struct UpdateStats {
     checked: u8,
     downloaded: u8,
     skipped: u8,
+    bytes_to_download: u64,
+    bytes_downloaded: u64,
 }
 
 fn parse_info(info: &str) -> CdnInfo {
@@ -37,9 +41,8 @@ fn parse_info(info: &str) -> CdnInfo {
 
 // Read file to serde json CdnInfo
 fn read_info_file(filepath: &Path) -> CdnInfo {
-    let info_file = fs::read_to_string(&filepath).unwrap_or_else(|_| {
-        include_str!("assets/default_info.json").to_string()
-    });
+    let info_file = fs::read_to_string(&filepath)
+        .unwrap_or_else(|_| include_str!("assets/default_info.json").to_string());
     parse_info(&info_file)
 }
 
@@ -199,20 +202,43 @@ fn update(args: &args::Args, cdn_info: &CdnInfo, local_info: &CdnInfo) {
         checked: 0,
         downloaded: 0,
         skipped: 0,
+        bytes_to_download: 0,
+        bytes_downloaded: 0,
     };
 
     if !args.no_backup {
         backup(args, local_info, true);
     }
 
+    // get total download size
+    for cdn_file in &cdn_info.files {
+        stats.bytes_to_download += cdn_file.size as u64;
+    }
+
+    let pb = if !args.silent {
+        let pb = ProgressBar::new(stats.bytes_to_download / 1024 / 1024);
+        pb.set_style(
+            ProgressStyle::with_template("{spinner:.magenta} [{bar:.magenta}] >{msg:.green}<")
+                .unwrap()
+                .progress_chars("##-"),
+        );
+        pb
+    } else {
+        ProgressBar::hidden()
+    };
+
     // iterate cdn files
     for cdn_file in &cdn_info.files {
+        if !args.silent {
+            pb.set_message((cdn_file.name).to_string());
+        }
         // skip launcher files if not explicitly asked for
         if cdn_file.name.starts_with("launcher") && !args.launcher {
             if !args.quiet && !args.silent {
-                println!("{}: {}", "Skipped".bright_blue(), &cdn_file.name);
+                pb.println(format!("{}: {}", "Skipped".bright_blue(), &cdn_file.name));
             };
             stats.skipped += 1;
+            pb.inc(cdn_file.size as u64 / 1024 / 1024);
             continue;
         }
 
@@ -224,9 +250,10 @@ fn update(args: &args::Args, cdn_info: &CdnInfo, local_info: &CdnInfo) {
             // otherwise delete local file
             if file_get_sha1(&file_path) == cdn_file.hash {
                 if !args.quiet && !args.silent {
-                    println!("{}: {}", "Checked".cyan(), cdn_file.name)
+                    pb.println(format!("{}: {}", "Checked".cyan(), cdn_file.name))
                 };
                 stats.checked += 1;
+                pb.inc(cdn_file.size as u64 / 1024 / 1024);
                 continue;
             } else {
                 fs::remove_file(&file_path).unwrap_or_else(|error| {
@@ -248,17 +275,28 @@ fn update(args: &args::Args, cdn_info: &CdnInfo, local_info: &CdnInfo) {
         );
 
         if !args.quiet && !args.silent {
-            println!("{}: {}", "Downloaded".bright_yellow(), &cdn_file.name)
+            pb.println(format!(
+                "{}: {}",
+                "Downloaded".bright_yellow(),
+                &cdn_file.name
+            ))
         };
         stats.downloaded += 1;
+        stats.bytes_downloaded += cdn_file.size as u64;
+        pb.inc(cdn_file.size as u64 / 1024 / 1024);
     }
 
     write_info_file(cdn_info, &Path::join(install_dir, "cdn_info.json"));
 
+    pb.finish_and_clear();
+
     if !args.silent {
         println!(
-            "{} hashes checked, {} files downloaded, {} files skipped",
-            stats.checked, stats.downloaded, stats.skipped
+            "{} hashes checked, {} files skipped, {} files ({}MB) downloaded",
+            stats.checked,
+            stats.skipped,
+            stats.downloaded,
+            stats.bytes_downloaded / 1024 / 1024
         );
     };
 }
