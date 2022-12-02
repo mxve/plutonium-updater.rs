@@ -216,7 +216,7 @@ fn update(args: &args::Args, cdn_info: &CdnInfo, local_info: &CdnInfo) {
     }
 
     let pb = if !args.silent {
-        let pb = ProgressBar::new(stats.bytes_to_download / 1024 / 1024);
+        let pb = ProgressBar::new(stats.bytes_to_download);
         pb.set_style(
             ProgressStyle::with_template("{spinner:.magenta} [{bar:.magenta}] >{msg:.green}<")
                 .unwrap()
@@ -238,7 +238,7 @@ fn update(args: &args::Args, cdn_info: &CdnInfo, local_info: &CdnInfo) {
                 pb.println(format!("{}: {}", "Skipped".bright_blue(), &cdn_file.name));
             };
             stats.skipped += 1;
-            pb.inc(cdn_file.size as u64 / 1024 / 1024);
+            pb.inc(cdn_file.size as u64);
             continue;
         }
 
@@ -253,7 +253,7 @@ fn update(args: &args::Args, cdn_info: &CdnInfo, local_info: &CdnInfo) {
                     pb.println(format!("{}: {}", "Checked".cyan(), cdn_file.name))
                 };
                 stats.checked += 1;
-                pb.inc(cdn_file.size as u64 / 1024 / 1024);
+                pb.inc(cdn_file.size as u64);
                 continue;
             } else {
                 fs::remove_file(&file_path).unwrap_or_else(|error| {
@@ -283,7 +283,7 @@ fn update(args: &args::Args, cdn_info: &CdnInfo, local_info: &CdnInfo) {
         };
         stats.downloaded += 1;
         stats.bytes_downloaded += cdn_file.size as u64;
-        pb.inc(cdn_file.size as u64 / 1024 / 1024);
+        pb.inc(cdn_file.size as u64);
     }
 
     write_info_file(cdn_info, &Path::join(install_dir, "cdn_info.json"));
