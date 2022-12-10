@@ -41,7 +41,7 @@ fn parse_info(info: &str) -> CdnInfo {
 
 // Read file to serde json CdnInfo
 fn read_info_file(filepath: &Path) -> CdnInfo {
-    let info_file = fs::read_to_string(&filepath)
+    let info_file = fs::read_to_string(filepath)
         .unwrap_or_else(|_| include_str!("assets/default_info.json").to_string());
     parse_info(&info_file)
 }
@@ -65,7 +65,7 @@ fn write_info_file(info: &CdnInfo, filepath: &Path) {
 
 fn file_get_sha1(path: &Path) -> String {
     let mut sha1 = sha1_smol::Sha1::new();
-    sha1.update(&fs::read(&path).unwrap());
+    sha1.update(&fs::read(path).unwrap());
     sha1.digest().to_string()
 }
 
@@ -74,12 +74,12 @@ fn copy_if_exists(origin: &Path, destination: &Path) {
         let file_dir = destination.parent().unwrap();
 
         if !file_dir.exists() {
-            fs::create_dir_all(&file_dir).unwrap_or_else(|error| {
+            fs::create_dir_all(file_dir).unwrap_or_else(|error| {
                 panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
             });
         }
 
-        fs::copy(&origin, destination).unwrap_or_else(|error| {
+        fs::copy(origin, destination).unwrap_or_else(|error| {
             panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
         });
     }
@@ -263,7 +263,7 @@ fn update(args: &args::Args, cdn_info: &CdnInfo, local_info: &CdnInfo) {
         } else {
             // local directory doesnt exist, create it
             // no need to check for existing files
-            fs::create_dir_all(&file_dir).unwrap_or_else(|error| {
+            fs::create_dir_all(file_dir).unwrap_or_else(|error| {
                 panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
             });
         }

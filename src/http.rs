@@ -17,7 +17,7 @@ pub fn get_body_string(url: &str) -> String {
 pub fn download_file(url: &str, file_path: &Path) {
     let body = get_body(url);
 
-    let mut f = fs::File::create(&file_path).unwrap_or_else(|error| {
+    let mut f = fs::File::create(file_path).unwrap_or_else(|error| {
         panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
     });
     f.write_all(&body).unwrap_or_else(|error| {

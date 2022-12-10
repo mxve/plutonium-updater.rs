@@ -65,6 +65,6 @@ pub struct Args {
 
 pub fn get() -> Args {
     let mut args = Args::parse();
-    args.directory = args.directory.replace("\"", "");
+    args.directory = args.directory.replace('"', "");
     args
 }
