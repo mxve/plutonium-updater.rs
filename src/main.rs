@@ -101,7 +101,10 @@ fn get_backups(install_dir: &Path) -> Vec<u16> {
     let dirs = get_subdirs(&Path::join(install_dir, "backup")).unwrap_or_else(|_| vec![]);
     let mut backups: Vec<u16> = vec![];
     for d in dirs {
-        backups.push(d.file_name().unwrap().to_string_lossy().parse().unwrap())
+        let sd = d.file_name().unwrap().to_str().unwrap();
+        if let Ok(name) = sd.parse::<u16>() {
+            backups.push(name);
+        }
     }
     backups.sort_unstable();
     backups
