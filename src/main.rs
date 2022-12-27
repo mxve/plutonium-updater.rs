@@ -209,7 +209,7 @@ fn update(args: &args::Args, cdn_info: &CdnInfo, local_info: &CdnInfo) {
         bytes_downloaded: 0,
     };
 
-    if !args.no_backup {
+    if args.backup {
         backup(args, local_info, true);
     }
 

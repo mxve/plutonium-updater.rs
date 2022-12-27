@@ -31,6 +31,10 @@ pub struct Args {
     #[clap(long)]
     pub no_color: bool,
 
+    /// Create backup of current version while updating
+    #[clap(long)]
+    pub backup: bool,
+
     /// Create/update backup of current version
     #[clap(long)]
     pub manual_backup: bool,
@@ -43,7 +47,7 @@ pub struct Args {
     #[clap(long, default_value = "undefined")]
     pub backup_restore: String,
 
-    /// disable backups
+    /// Deprecated, backups are now disabled by default
     #[clap(long)]
     pub no_backup: bool,
 
