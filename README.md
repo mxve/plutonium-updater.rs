@@ -86,7 +86,7 @@ or
     - Exit code 1 for outdated
 - ```--version-local```
   - Returns local version number, not found/broken = 0
-- ```--version-cdn``
+- ```--version-cdn```
   - Returns latest version number
 - ```--no-color```
   - Disable colors
