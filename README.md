@@ -98,6 +98,8 @@ or
   - List available backups
 - ```--backup-restore <backup>```
   - Restore backed up version
+- ```--cdn-url```
+  - Override cdn url
 
 ### Exit codes
 - 0 success

@@ -47,9 +47,9 @@ pub struct Args {
     #[clap(long)]
     pub no_backup: bool,
 
+    /// Override cdn url
     #[clap(
         long,
-        hide(true),
         default_value = "https://cdn.plutonium.pw/updater/prod/info.json"
     )]
     pub cdn_url: String,
