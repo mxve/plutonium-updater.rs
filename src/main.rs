@@ -369,7 +369,7 @@ fn main() {
         std::process::exit(0);
     }
 
-    if args.backup {
+    if args.manual_backup {
         backup(&args, &local_info, false);
         std::process::exit(0);
     }

@@ -33,7 +33,7 @@ pub struct Args {
 
     /// Create/update backup of current version
     #[clap(long)]
-    pub backup: bool,
+    pub manual_backup: bool,
 
     /// List backups
     #[clap(long)]

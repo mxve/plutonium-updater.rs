@@ -90,9 +90,8 @@ or
   - Returns latest version number
 - ```--no-color```
   - Disable colors
-- ```--no-backup```
-  - Don't create backup
-- ```--backup```
+
+- ```--manual-backup```
   - Create/update backup of current version
 - ```--backup-list```
   - List available backups
