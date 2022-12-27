@@ -7,7 +7,7 @@
 #### Stop uploading, start downloading
 ###### (So catchy!)
 
-![](https://screen.sbs/i/2133v3q6.png)
+![](github_assets/preview.gif)
 
 ### Features
 - Multi-platform
