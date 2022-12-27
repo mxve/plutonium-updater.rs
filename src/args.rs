@@ -31,6 +31,14 @@ pub struct Args {
     #[clap(long)]
     pub no_color: bool,
 
+    /// List revisions archived by plutools
+    #[clap(long)]
+    pub plutools_list: bool,
+
+    /// Install revision archived by plutools | WARNING: Third-party hosted files
+    #[clap(long, default_value = "0")]
+    pub plutools: String,
+
     /// Create backup of current version while updating
     #[clap(long)]
     pub backup: bool,

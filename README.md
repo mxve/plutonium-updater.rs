@@ -90,6 +90,11 @@ or
   - Returns latest version number
 - ```--no-color```
   - Disable colors
+- ```--plutools-list```
+  - List revisions archived by plutools.pw
+- ```--plutools <revision>```
+  - Install revision archived by plutools.pw
+  - :warning: Third-party hosted binary files :warning:
 - ```--backup```
   - Create backup of current version while updating
 - ```--manual-backup```
