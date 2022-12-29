@@ -390,6 +390,7 @@ fn main() {
 
     if args.plutools_list {
         display_archived_revisions();
+        std::process::exit(0);
     }
 
     if args.backup_list {
