@@ -1,5 +1,6 @@
 use colored::*;
 use indicatif::{ProgressBar, ProgressStyle};
+use nanoserde::{DeJson, SerJson};
 
 use std::{
     fs, io,
@@ -10,16 +11,16 @@ use std::{
 
 mod args;
 mod http;
-#[derive(serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(DeJson, SerJson)]
 struct CdnInfo {
     product: String,
     revision: u16,
+    #[nserde(rename = "baseUrl")]
     base_url: String,
     files: Vec<CdnFile>,
 }
 
-#[derive(serde::Deserialize, serde::Serialize)]
+#[derive(DeJson, SerJson)]
 struct CdnFile {
     name: String,
     size: u32,
@@ -36,7 +37,7 @@ struct UpdateStats {
 }
 
 fn parse_info(info: &str) -> CdnInfo {
-    serde_json::from_str(info).unwrap()
+    nanoserde::DeJson::deserialize_json(info).unwrap()
 }
 
 // Read file to serde json CdnInfo
@@ -57,7 +58,7 @@ fn write_info_file(info: &CdnInfo, filepath: &Path) {
             panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
         });
     local_info_file
-        .write_all(serde_json::to_string_pretty(&info).unwrap().as_bytes())
+        .write_all(nanoserde::SerJson::serialize_json(info).as_bytes())
         .unwrap_or_else(|error| {
             panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
         });
@@ -125,7 +126,7 @@ fn copy_version(info: &CdnInfo, source_dir: &Path, destination_dir: &Path) {
 }
 
 fn get_archived_revisions() -> Vec<u16> {
-    let archive_revisions: Vec<u16> = serde_json::from_str(&http::get_body_string(
+    let archive_revisions: Vec<u16> = nanoserde::DeJson::deserialize_json(&http::get_body_string(
         "https://updater-archive.plutools.pw/revisions.json",
     ))
     .unwrap();
