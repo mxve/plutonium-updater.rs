@@ -37,7 +37,7 @@ struct UpdateStats {
 }
 
 fn parse_info(info: &str) -> CdnInfo {
-    nanoserde::DeJson::deserialize_json(info).unwrap()
+    DeJson::deserialize_json(info).unwrap()
 }
 
 // Read file to serde json CdnInfo
@@ -58,7 +58,7 @@ fn write_info_file(info: &CdnInfo, filepath: &Path) {
             panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
         });
     local_info_file
-        .write_all(nanoserde::SerJson::serialize_json(info).as_bytes())
+        .write_all(SerJson::serialize_json(info).as_bytes())
         .unwrap_or_else(|error| {
             panic!("\n\n{}:\n{:?}", "Error".bright_red(), error);
         });
@@ -126,7 +126,7 @@ fn copy_version(info: &CdnInfo, source_dir: &Path, destination_dir: &Path) {
 }
 
 fn get_archived_revisions() -> Vec<u16> {
-    let archive_revisions: Vec<u16> = nanoserde::DeJson::deserialize_json(&http::get_body_string(
+    let archive_revisions: Vec<u16> = DeJson::deserialize_json(&http::get_body_string(
         "https://updater-archive.plutools.pw/revisions.json",
     ))
     .unwrap();
