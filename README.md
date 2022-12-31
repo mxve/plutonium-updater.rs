@@ -1,21 +1,16 @@
 ![](https://img.shields.io/github/actions/workflow/status/mxve/plutonium-updater.rs/push.yml?label=Build%20status&style=for-the-badge) [![](https://img.shields.io/github/v/release/mxve/plutonium-updater.rs?label=Latest%20release&logo=github&style=for-the-badge)](https://github.com/mxve/plutonium-updater.rs/releases/latest) ![](https://img.shields.io/github/downloads/mxve/plutonium-updater.rs/total?label=total%20downloads&style=for-the-badge)
 
-[![alt text](https://plutools.pw/assets/img/plutools_64.png)](https://plutools.pw/) [![alt text](http://i.epvpimg.com/2m4qdab.png)](https://discord.gg/SnJQusteNZ) 
 
 
-# Plutonium Updater CLI
-#### Stop uploading, start downloading
-###### (So catchy!)
+
+# Plutonium Updater CLI [![alt text](https://plutools.pw/assets/img/plutools_64.png)](https://plutools.pw/) [![alt text](http://i.epvpimg.com/2m4qdab.png)](https://discord.gg/SnJQusteNZ) 
 
 ![](github_assets/preview.gif)
 
 ### Features
 - Multi-platform
-- Version checking
-- File hash checking
-- Automatic version backups/restoring
-  - last 3 versions
-  - Doesn't include custom content (scripts, usermaps..)
+- Option to automatically create backups
+- Install older versions from updater-archive.plutools.pw
 
 ### Usage
 
@@ -110,3 +105,12 @@ or
 - 0 success
 - 101 error (rust panic)
 (Just fail on everything that differs from 0 if you are scripting it)
+
+### Building
+1. Install the [rust toolchain](https://rustup.rs/)
+2. Clone the repo
+3. Build
+    - ```cargo build --release```
+4. (Linux/Optional) Strip binary 
+    - ```strip target/release/plutonium-updater```
+5. Grab binary from ```target/release/plutonium-updater(.exe)```

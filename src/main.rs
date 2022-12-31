@@ -1,7 +1,3 @@
-use colored::*;
-use indicatif::{ProgressBar, ProgressStyle};
-use nanoserde::{DeJson, SerJson};
-
 use std::{
     fs, io,
     io::Write,
@@ -9,8 +5,13 @@ use std::{
     str,
 };
 
+use colored::*;
+use indicatif::{ProgressBar, ProgressStyle};
+use nanoserde::{DeJson, SerJson};
+
 mod args;
 mod http;
+
 #[derive(DeJson, SerJson)]
 struct CdnInfo {
     product: String,
