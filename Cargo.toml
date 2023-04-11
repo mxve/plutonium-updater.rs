@@ -6,6 +6,7 @@ build = "res/build.rs"
 
 [profile.release]
 opt-level = "s"
+panic = "abort"
 
 [dependencies]
 clap = { version = "4.0.32", features = ["derive"] }
