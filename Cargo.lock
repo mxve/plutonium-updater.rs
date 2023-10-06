@@ -312,7 +312,7 @@ checksum = "86f0b0d4bf799edbc74508c1e8bf170ff5f41238e5f8225603ca7caaae2b7860"
 
 [[package]]
 name = "plutonium-updater"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "clap",
  "colored",
