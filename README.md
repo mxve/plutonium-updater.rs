@@ -5,8 +5,6 @@
 
 # Plutonium Updater CLI [![alt text](https://plutools.pw/assets/img/plutools_64.png)](https://plutools.pw/) [![alt text](http://i.epvpimg.com/2m4qdab.png)](https://discord.gg/SnJQusteNZ) 
 
-### :warning: v0.4.0 changed the backup functionality and arguments :warning:
-
 ![](github_assets/preview.gif)
 
 ### Features
