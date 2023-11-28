@@ -259,7 +259,7 @@ fn update(args: &args::Args, cdn_info: &CdnInfo, local_info: &CdnInfo) {
     };
 
     // iterate cdn files
-    for cdn_file in &cdn_info.files {
+    'cdn_iterator: for cdn_file in &cdn_info.files {
         if !args.silent {
             pb.set_message((cdn_file.name).to_string());
         }
@@ -271,6 +271,17 @@ fn update(args: &args::Args, cdn_info: &CdnInfo, local_info: &CdnInfo) {
             stats.skipped += 1;
             pb.inc(cdn_file.size as u64);
             continue;
+        }
+
+        for exclude in &args.exclude {
+            if cdn_file.name.starts_with(exclude) {
+                if !args.quiet && !args.silent {
+                    pb.println(format!("{}: {}", "Skipped".bright_blue(), &cdn_file.name));
+                };
+                stats.skipped += 1;
+                pb.inc(cdn_file.size as u64);
+                continue 'cdn_iterator;
+            }
         }
 
         let file_path = Path::join(install_dir, Path::new(&cdn_file.name));

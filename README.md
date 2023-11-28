@@ -101,6 +101,10 @@ or
   - Restore backed up version
 - ```--cdn-url```
   - Override cdn url
+- ```-e, --exclude "file|folder```
+  - Exclude file or folder from update
+  - Can be used multiple times
+  - Example: ```-e "games/t6mp.exe" -e "storage"```
 
 ### Exit codes
 - 0 success

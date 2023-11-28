@@ -73,6 +73,10 @@ pub struct Args {
     // get cdn version
     #[clap(long)]
     pub version_cdn: bool,
+
+    // Exclude remote dirs
+    #[clap(short, long)]
+    pub exclude: Vec<String>,
 }
 
 pub fn get() -> Args {
