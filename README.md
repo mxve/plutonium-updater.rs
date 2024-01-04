@@ -47,7 +47,7 @@ plutonium-updater.exe -d "%installDir%"
 ```
 #!/bin/bash
 INSTALLDIR=/home/pluto/pluto_dir
-./plutonium-updater.exe -d "$INSTALLDIR"
+./plutonium-updater -d "$INSTALLDIR"
 ```
 
 ##### Repair files
