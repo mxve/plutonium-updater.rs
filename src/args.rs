@@ -31,13 +31,13 @@ pub struct Args {
     #[clap(long)]
     pub no_color: bool,
 
-    /// List revisions archived by plutools
-    #[clap(long)]
-    pub plutools_list: bool,
+    /// List archived revisions from plutonium-archive.getserve.rs
+    #[clap(long, alias = "plutools-list")]
+    pub archive_list: bool,
 
-    /// Install revision archived by plutools | WARNING: Third-party hosted files
-    #[clap(long, default_value = "0")]
-    pub plutools: String,
+    /// Install archived revision from plutonium-archive.getserve.rs
+    #[clap(long, default_value = "0", alias = "plutools")]
+    pub archive: String,
 
     /// Create backup of current version while updating
     #[clap(long)]

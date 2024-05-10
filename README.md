@@ -3,7 +3,7 @@
 
 
 
-# Plutonium Updater CLI [![alt text](https://plutools.pw/assets/img/plutools_64.png)](https://plutools.pw/) [![alt text](http://i.epvpimg.com/2m4qdab.png)](https://discord.gg/SnJQusteNZ) 
+# Plutonium Updater CLI [![alt text](github_assets/logo.png)](https://plutools.pw/) [![alt text](github_assets/discord.png)](https://discord.gg/SnJQusteNZ)
 
 ![](github_assets/preview.gif)
 
@@ -85,12 +85,11 @@ or
   - Returns latest version number
 - ```--no-color```
   - Disable colors
-- ```--plutools-list```
-  - List revisions archived by plutools.pw
-- ```--plutools <revision>```
-  - Install revision archived by plutools.pw
-  - Use ```-f``` when downgrading
-  - :warning: Third-party hosted binary files :warning:
+- ```--archive-list``` | ~~```--plutools-list```~~
+  - List revisions archived on plutonium-archive.getserve.rs
+- ```--archive <revision>``` | ~~```--plutools```~~
+  - Install revision archived on plutonium-archive.getserve.rs
+  - Downgrading is not recommended, use an empty directory instead. If downgrading use ```-f```.
 - ```--backup```
   - Create backup of current version while updating
 - ```--manual-backup```
@@ -116,6 +115,6 @@ or
 2. Clone the repo
 3. Build
     - ```cargo build --release```
-4. (Linux/Optional) Strip binary 
+4. (Linux/Optional) Strip binary
     - ```strip target/release/plutonium-updater```
 5. Grab binary from ```target/release/plutonium-updater(.exe)```

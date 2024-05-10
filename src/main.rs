@@ -92,7 +92,6 @@ fn copy_if_exists(origin: &Path, destination: &Path) {
 // https://stackoverflow.com/a/58063083
 fn get_subdirs(dir: &Path) -> Result<Vec<PathBuf>, io::Error> {
     Ok(fs::read_dir(dir)?
-        .into_iter()
         .filter(|r| r.is_ok())
         .map(|r| r.unwrap().path())
         .filter(|r| r.is_dir())
@@ -128,7 +127,7 @@ fn copy_version(info: &CdnInfo, source_dir: &Path, destination_dir: &Path) {
 
 fn get_archived_revisions() -> Vec<u16> {
     let archive_revisions: Vec<u16> = DeJson::deserialize_json(&http::get_body_string(
-        "https://updater-archive.plutools.pw/revisions.json",
+        "https://plutonium-archive.getserve.rs/revisions.json",
     ))
     .unwrap();
     archive_revisions
@@ -146,7 +145,10 @@ fn display_archived_revisions() {
 fn get_archive_url(revision: u16) -> String {
     let archive_revisions = get_archived_revisions();
     if archive_revisions.contains(&revision) {
-        format!("https://updater-archive.plutools.pw/{}/info.json", revision)
+        format!(
+            "https://plutonium-archive.getserve.rs/{}/info.json",
+            revision
+        )
     } else {
         panic!("Revision {} is not available in the archive.", revision);
     }
@@ -367,13 +369,13 @@ fn main() {
     let args = args::get();
     setup_env(args.no_color);
 
-    let plutools_revision: u16 = args
-        .plutools
+    let archive_revision: u16 = args
+        .archive
         .parse()
         .unwrap_or_else(|_| panic!("{}: {}", "Error".bright_red(), "Invalid archived version"));
 
-    let cdn = if plutools_revision > 0 {
-        get_archive_url(plutools_revision)
+    let cdn = if archive_revision > 0 {
+        get_archive_url(archive_revision)
     } else {
         args.cdn_url.to_string()
     };
@@ -400,7 +402,7 @@ fn main() {
         }
     }
 
-    if args.plutools_list {
+    if args.archive_list {
         display_archived_revisions();
         std::process::exit(0);
     }
