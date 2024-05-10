@@ -9,15 +9,15 @@ opt-level = "s"
 panic = "abort"
 
 [dependencies]
-clap = { version = "4.4.6", features = ["derive"] }
-colored = "2.0.4"
-http_req = { version = "0.10.0", default-features = false, features = [
+clap = { version = "4.5.4", features = ["derive"] }
+colored = "2.1.0"
+http_req = { version = "0.10.3", default-features = false, features = [
     "rust-tls",
 ] }
-nanoserde = "0.1.35"
+nanoserde = "0.1.37"
 sha1_smol = "1.0.0"
-indicatif = "0.17.7"
-webpki = "0.22.2"
+indicatif = "0.17.8"
+webpki = "0.22.4"
 
 [build-dependencies]
 winres = "0.1.12"
