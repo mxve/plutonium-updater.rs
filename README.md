@@ -10,7 +10,7 @@
 ### Features
 - Multi-platform
 - Option to automatically create backups
-- Install older versions from updater-archive.plutools.pw
+- Install older versions from plutonium-archive.getserve.rs
 
 ### Usage
 
