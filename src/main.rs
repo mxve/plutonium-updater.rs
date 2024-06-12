@@ -37,15 +37,14 @@ struct UpdateStats {
     bytes_downloaded: u64,
 }
 
-fn parse_info(info: &str) -> CdnInfo {
-    DeJson::deserialize_json(info).unwrap()
-}
-
 // Read file to serde json CdnInfo
 fn read_info_file(filepath: &Path) -> CdnInfo {
     let info_file = fs::read_to_string(filepath)
         .unwrap_or_else(|_| include_str!("assets/default_info.json").to_string());
-    parse_info(&info_file)
+    let info: CdnInfo = DeJson::deserialize_json(&info_file).unwrap_or_else(|_| {
+        DeJson::deserialize_json(include_str!("assets/default_info.json")).unwrap()
+    });
+    info
 }
 
 // Write serde json CdnInfo to file
@@ -381,7 +380,7 @@ fn main() {
     };
 
     let local_info = read_info_file(&Path::join(Path::new(&args.directory), "cdn_info.json"));
-    let cdn_info = parse_info(&http::get_body_string(&cdn));
+    let cdn_info: CdnInfo = DeJson::deserialize_json(&http::get_body_string(&cdn)).unwrap();
 
     if args.version_local {
         println!("{}", local_info.revision);
