@@ -15,7 +15,7 @@ http_req = { version = "0.10.3", default-features = false, features = [
     "rust-tls",
 ] }
 nanoserde = "0.1.37"
-sha1_smol = "1.0.0"
+sha1_smol = "1.0.1"
 indicatif = "0.17.8"
 webpki = "0.22.4"
 
