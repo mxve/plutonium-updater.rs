@@ -9,7 +9,7 @@ opt-level = "s"
 panic = "abort"
 
 [dependencies]
-clap = { version = "4.5.6", features = ["derive"] }
+clap = { version = "4.5.17", features = ["derive"] }
 colored = "2.1.0"
 http_req = { version = "0.10.3", default-features = false, features = [
     "rust-tls",
