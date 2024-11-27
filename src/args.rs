@@ -62,7 +62,7 @@ pub struct Args {
     /// Override cdn url
     #[clap(
         long,
-        default_value = "https://cdn.plutonium.pw/updater/prod/info.json"
+        default_value = "https://cdn.plutoniummod.com/updater/prod/info.json"
     )]
     pub cdn_url: String,
 
