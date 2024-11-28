@@ -54,6 +54,7 @@ INSTALLDIR=/home/pluto/pluto_dir
 - ```--backup-restore <backup>``` - Restore backup
 - ```--cdn-url``` - Override CDN URL
 - ```-e, --exclude <path>``` - Exclude file/folder from update
+- ```--threads <number>``` - Number of download threads (default: 2)
 
 ### Building from Source
 1. Install [Rust](https://rustup.rs/)

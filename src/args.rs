@@ -69,6 +69,10 @@ pub struct Args {
     // Exclude remote dirs
     #[clap(short, long)]
     pub exclude: Vec<String>,
+
+    /// Number of download threads
+    #[clap(long, default_value = "2")]
+    pub threads: usize,
 }
 
 pub fn get() -> Args {
