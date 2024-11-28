@@ -31,14 +31,6 @@ pub struct Args {
     #[clap(long)]
     pub no_color: bool,
 
-    /// List archived revisions from plutonium-archive.getserve.rs
-    #[clap(long, alias = "plutools-list")]
-    pub archive_list: bool,
-
-    /// Install archived revision from plutonium-archive.getserve.rs
-    #[clap(long, default_value = "0", alias = "plutools")]
-    pub archive: String,
-
     /// Create backup of current version while updating
     #[clap(long)]
     pub backup: bool,

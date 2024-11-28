@@ -124,35 +124,6 @@ fn copy_version(info: &CdnInfo, source_dir: &Path, destination_dir: &Path) {
     copy_if_exists(&source_file_path, &dest_file_path);
 }
 
-fn get_archived_revisions() -> Vec<u16> {
-    let archive_revisions: Vec<u16> = DeJson::deserialize_json(&http::get_body_string(
-        "https://plutonium-archive.getserve.rs/revisions.json",
-    ))
-    .unwrap();
-    archive_revisions
-}
-
-fn display_archived_revisions() {
-    let archived_revisions = get_archived_revisions();
-    println!("Available archived revisions:");
-    for revision in archived_revisions {
-        print!("{} ", revision.to_string().bright_yellow());
-    }
-    println!();
-}
-
-fn get_archive_url(revision: u16) -> String {
-    let archive_revisions = get_archived_revisions();
-    if archive_revisions.contains(&revision) {
-        format!(
-            "https://plutonium-archive.getserve.rs/{}/info.json",
-            revision
-        )
-    } else {
-        panic!("Revision {} is not available in the archive.", revision);
-    }
-}
-
 fn backup(args: &args::Args, local_info: &CdnInfo, delete: bool) {
     let install_dir = Path::new(&args.directory);
     let backup_dir: PathBuf = [&args.directory, "backup", &local_info.revision.to_string()]
@@ -368,16 +339,7 @@ fn main() {
     let args = args::get();
     setup_env(args.no_color);
 
-    let archive_revision: u16 = args
-        .archive
-        .parse()
-        .unwrap_or_else(|_| panic!("{}: {}", "Error".bright_red(), "Invalid archived version"));
-
-    let cdn = if archive_revision > 0 {
-        get_archive_url(archive_revision)
-    } else {
-        args.cdn_url.to_string()
-    };
+    let cdn = args.cdn_url.to_string();
 
     let local_info = read_info_file(&Path::join(Path::new(&args.directory), "cdn_info.json"));
     let cdn_info: CdnInfo = DeJson::deserialize_json(&http::get_body_string(&cdn)).unwrap();
@@ -399,11 +361,6 @@ fn main() {
         } else {
             std::process::exit(0);
         }
-    }
-
-    if args.archive_list {
-        display_archived_revisions();
-        std::process::exit(0);
     }
 
     if args.backup_list {
